@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Product name #1",
+    "quantity": 10,
+    "description": "Product description #1",
+    "minQuantity": 3,
+    "active": true,
+    "unitPrice": 100,
+    "storeId": "",
+    "owner": ""
+  },
+  {
+    "name": "Product name #2",
+    "quantity": 10,
+    "description": "Product description #2",
+    "minQuantity": 3,
+    "active": true,
+    "unitPrice": 100,
+    "storeId": "",
+    "owner": ""
+  }
+]

@@ -1,0 +1,330 @@
+components:
+  routes:
+    GetAll:
+      tags:
+        - Stores
+      summary: Get list of all stores
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stores:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/StoreDoc'
+        '400':
+          $ref: '#/components/errors/BadRequest'
+        '401':
+          $ref: '#/components/errors/Unauthorized'
+        '403':
+          $ref: '#/components/errors/Forbidden'
+        '404':
+          $ref: '#/components/errors/NotFound'
+        '500':
+          $ref: '#/components/errors/SthWentWrong'
+    GetOne:
+      tags:
+        - Stores
+      summary: Get one store by ID
+      parameters:
+        - name: storeId
+          in: path
+          description: ID of the store
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  store:
+                    $ref: '#/components/schemas/StoreDetailsDoc'
+        '400':
+          $ref: '#/components/errors/BadRequest'
+        '401':
+          $ref: '#/components/errors/Unauthorized'
+        '403':
+          $ref: '#/components/errors/Forbidden'
+        '404':
+          $ref: '#/components/errors/NotFound'
+        '500':
+          $ref: '#/components/errors/SthWentWrong'
+    DeleteOne:
+      tags:
+        - Stores
+      summary: Delete one store by ID
+      parameters:
+        - name: storeId
+          in: path
+          description: ID of the store to delete
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/errors/BadRequest'
+        '401':
+          $ref: '#/components/errors/Unauthorized'
+        '403':
+          $ref: '#/components/errors/Forbidden'
+        '404':
+          $ref: '#/components/errors/NotFound'
+        '500':
+          $ref: '#/components/errors/SthWentWrong'
+    Add:
+      tags:
+        - Stores
+      summary: Create one store for the current connected user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Store name
+                  example: Store name
+                  required: true
+                  minimum: 6
+                description:
+                  type: string
+                  description: Store description
+                  example: Store description
+                  required: true
+                  minimum: 6
+                  maximum: 100
+                active:
+                  type: boolean
+                  description: Store active state
+                  example: true
+                  required: true
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  storeId:
+                    type: string
+                    description: The newly created store ID
+                    example: 670f198f1fc4fdd76bd0AAAA
+        '400':
+          $ref: '#/components/errors/BadRequest'
+        '401':
+          $ref: '#/components/errors/Unauthorized'
+        '403':
+          $ref: '#/components/errors/Forbidden'
+        '404':
+          $ref: '#/components/errors/NotFound'
+        '500':
+          $ref: '#/components/errors/SthWentWrong'
+    EditOne:
+      tags:
+        - Stores
+      summary: Edit one store by ID
+      parameters:
+        - name: storeId
+          in: path
+          description: ID of the store to update
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Store name
+                  example: Store name
+                  minimum: 6
+                description:
+                  type: string
+                  description: Store description
+                  example: Store description
+                  minimum: 6
+                  maximum: 100
+                active:
+                  type: boolean
+                  description: Store active state
+                  example: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/errors/BadRequest'
+        '401':
+          $ref: '#/components/errors/Unauthorized'
+        '403':
+          $ref: '#/components/errors/Forbidden'
+        '404':
+          $ref: '#/components/errors/NotFound'
+        '500':
+          $ref: '#/components/errors/SthWentWrong'
+    GetStoreProducts:
+      tags:
+        - Stores
+        - Products
+      summary: Get list of all products of a given store
+      parameters:
+        - name: storeId
+          in: path
+          description: Store ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProductDoc'
+        '400':
+          $ref: '#/components/errors/BadRequest'
+        '401':
+          $ref: '#/components/errors/Unauthorized'
+        '403':
+          $ref: '#/components/errors/Forbidden'
+        '404':
+          $ref: '#/components/errors/NotFound'
+        '500':
+          $ref: '#/components/errors/SthWentWrong'
+    DeleteStoreProduct:
+      tags:
+        - Stores
+        - Products
+      summary: Delete one product from store
+      parameters:
+        - name: productId
+          in: path
+          description: ID of the product to delete
+          required: true
+          schema:
+            type: string
+        - name: storeId
+          in: path
+          description: ID of the store the product belongs to
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/errors/BadRequest'
+        '401':
+          $ref: '#/components/errors/Unauthorized'
+        '403':
+          $ref: '#/components/errors/Forbidden'
+        '404':
+          $ref: '#/components/errors/NotFound'
+        '500':
+          $ref: '#/components/errors/SthWentWrong'
+    AddProductToStore:
+      tags:
+        - Stores
+        - Products
+      summary: Add one product to a given store
+      parameters:
+        - name: storeId
+          in: path
+          description: ID of the store the product will belong to
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Product name
+                  example: Product name
+                  required: true
+                quantity:
+                  type: integer
+                  description: Product remaining quantity
+                  example: 10
+                  required: true
+                description:
+                  type: string
+                  description: Product description
+                  example: Product description
+                  required: true
+                  minimum: 12
+                  maximum: 100
+                minQuantity:
+                  type: integer
+                  description: Product minimum acceptable quantity inside the inventory
+                  example: 3
+                  required: true
+                active:
+                  type: boolean
+                  description: Store active state
+                  example: true
+                  required: true
+                unitPrice:
+                  type: integer
+                  description: Price of this product
+                  example: 100
+                  required: true
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  productId:
+                    type: string
+                    description: The newly created product ID
+                    example: 670f198f1fc4fdd76bd0AAAA
+        '400':
+          $ref: '#/components/errors/BadRequest'
+        '401':
+          $ref: '#/components/errors/Unauthorized'
+        '403':
+          $ref: '#/components/errors/Forbidden'
+        '404':
+          $ref: '#/components/errors/NotFound'
+        '500':
+          $ref: '#/components/errors/SthWentWrong'

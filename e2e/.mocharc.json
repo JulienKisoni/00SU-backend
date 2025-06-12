@@ -1,0 +1,9 @@
+{
+  "extension": ["ts"],
+  "spec": "e2e/specs/full-flows.spec.ts",
+  "require": ["ts-node/register"],
+  "recursive": false,
+  "file": "e2e/index.ts",
+  "exit": "true",
+  "fgrep": "E2E"
+}

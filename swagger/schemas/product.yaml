@@ -1,0 +1,117 @@
+components:
+  schemas:
+    ProductDoc:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique ID of the product
+          example: 670f198f1fc4fdd76bd0AAAA
+        name:
+          type: string
+          description: Name of the product
+          example: 'Product name #1'
+        quantity:
+          type: interger
+          description: Current remaining quantity of the product
+          example: 8
+        storeId:
+          type: string
+          description: Unique ID of the owner's store
+          example: 670f198f1fc4fdd76bd0AAAA
+        description:
+          type: string
+          description: Product description
+          example: 'Product description #1'
+        minQuantity:
+          type: interger
+          description: Miminum acceptable quantity of the product inside the inventory
+          example: 3
+        owner:
+          type: string
+          description: Unique ID of the product owner
+          example: 670f198f1fc4fdd76bd0AAAA
+        active:
+          type: boolean
+          description: Active state
+          example: true
+        unitPrice:
+          type: interger
+          description: Price of one product
+          example: 500
+        createdAt:
+          type: string
+          format: date-time
+          description: Date of creation
+          example: 2024-10-19T17:30:37.831Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date of last update
+          example: 2024-10-19T17:30:37.831Z
+        reviews:
+          type: array
+          description: Uniq reviews IDs of this product
+          items:
+            type: string
+            example: 670f198f1fc4fdd76bd0AAAA
+    ProductDetailsDoc:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique ID of the product
+          example: 670f198f1fc4fdd76bd0AAAA
+        name:
+          type: string
+          description: Name of the product
+          example: 'Product name #1'
+        quantity:
+          type: interger
+          description: Current remaining quantity of the product
+          example: 8
+        storeId:
+          type: string
+          description: Unique ID of the owner's store
+          example: 670f198f1fc4fdd76bd0AAAA
+        description:
+          type: string
+          description: Product description
+          example: 'Product description #1'
+        minQuantity:
+          type: interger
+          description: Miminum acceptable quantity of the product inside the inventory
+          example: 3
+        owner:
+          type: string
+          description: Unique ID of the product owner
+          example: 670f198f1fc4fdd76bd0AAAA
+        active:
+          type: boolean
+          description: Active state
+          example: true
+        unitPrice:
+          type: interger
+          description: Price of one product
+          example: 500
+        createdAt:
+          type: string
+          format: date-time
+          description: Date of creation
+          example: 2024-10-19T17:30:37.831Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date of last update
+          example: 2024-10-19T17:30:37.831Z
+        reviews:
+          type: array
+          description: Uniq reviews IDs of this product
+          items:
+            type: string
+            example: 670f198f1fc4fdd76bd0AAAA
+        reviewDetails:
+          type: array
+          description: All reviews of the product
+          items:
+            $ref: '#/components/schemas/ReviewDoc'

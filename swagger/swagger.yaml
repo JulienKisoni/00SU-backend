@@ -1,0 +1,1976 @@
+openapi: 3.0.0
+info:
+  title: Store Manager Rest API
+  description: Endpoints documentation for Store Manager Rest API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000/
+tags:
+  - name: Auth
+    description: Authentication & Authorization endpoints
+  - name: Users
+    description: Users CRUD operations
+  - name: Stores
+    description: Stores CRUD operations
+  - name: Products
+    description: Products CRUD operations
+  - name: Reviews
+    description: Reviews CRUD operations
+  - name: Orders
+    description: Orders CRUD operations
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Bearer
+  routes:
+    auth:
+      Login:
+        tags:
+          - Auth
+        summary: Login and get back access and refresh tokens
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                    description: User's email
+                    example: johndoe@mail.com
+                    required: true
+                  password:
+                    type: string
+                    description: User's password
+                    example: mlskdmqlksdmfl
+                    minimum: 6
+                    required: true
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    accessToken:
+                      type: string
+                      description: Access token
+                      example: >-
+                        eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+                    refreshToken:
+                      type: string
+                      description: Access token
+                      example: >-
+                        eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+      RefreshToken:
+        tags:
+          - Auth
+        summary: Refresh your expired access token
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  refreshToken:
+                    type: string
+                    description: The current user's refresh token
+                    example: >-
+                      eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+                    required: true
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    accessToken:
+                      type: string
+                      description: The new access token
+                      example: >-
+                        eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+    orders:
+      GetAll:
+        tags:
+          - Orders
+        summary: Get list of all orders
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    orders:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/OrderDoc'
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+      GetUserOrders:
+        tags:
+          - Orders
+          - Users
+        summary: Get all orders of the current connected user
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    orders:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/OrderDoc'
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+      GetOne:
+        tags:
+          - Orders
+        summary: Get one order by ID
+        parameters:
+          - name: orderId
+            in: path
+            description: ID of the order
+            required: true
+            schema:
+              type: string
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    order:
+                      $ref: '#/components/schemas/OrderDetailsDoc'
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+      DeleteOne:
+        tags:
+          - Orders
+        summary: Delete one order by ID
+        parameters:
+          - name: orderId
+            in: path
+            description: ID of the order to delete
+            required: true
+            schema:
+              type: string
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+      EditOne:
+        tags:
+          - Orders
+        summary: Edit one order by ID
+        parameters:
+          - name: orderId
+            in: path
+            description: ID of the order to update
+            required: true
+            schema:
+              type: string
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: New order status
+                    enum:
+                      - COMPLETED
+                    example: COMPLETED
+                  items:
+                    type: array
+                    description: Items to order
+                    items:
+                      type: object
+                      properties:
+                        productId:
+                          type: string
+                          description: ID of product to order
+                          example: 670f198f1fc4fdd76bd0AAAA
+                        quantity:
+                          type: integer
+                          description: Amount of product to order
+                          minimum: 1
+                          example: 4
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+      Add:
+        tags:
+          - Orders
+        summary: Order product(s)
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    description: Items to order
+                    items:
+                      type: object
+                      properties:
+                        productId:
+                          type: string
+                          description: ID of product to order
+                          example: 670f198f1fc4fdd76bd0AAAA
+                        quantity:
+                          type: integer
+                          description: Amount of product to order
+                          minimum: 1
+                          example: 4
+        responses:
+          '201':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    orderId:
+                      type: string
+                      description: ID of the newly created order
+                      example: 670f198f1fc4fdd76bd0AAAA
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+    products:
+      GetAll:
+        tags:
+          - Products
+        summary: Get list of all products
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    products:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/ProductDoc'
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+      GetOne:
+        tags:
+          - Products
+        summary: Get one product by ID
+        parameters:
+          - name: productId
+            in: path
+            description: ID of the product
+            required: true
+            schema:
+              type: string
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    product:
+                      $ref: '#/components/schemas/ProductDetailsDoc'
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+      DeleteOne:
+        tags:
+          - Products
+        summary: Delete one product by ID
+        parameters:
+          - name: productId
+            in: path
+            description: ID of the product to delete
+            required: true
+            schema:
+              type: string
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+      EditOne:
+        tags:
+          - Products
+        summary: Edit one product by ID
+        parameters:
+          - name: productId
+            in: path
+            description: ID of the product to update
+            required: true
+            schema:
+              type: string
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: Product name
+                    example: Product name
+                  quantity:
+                    type: integer
+                    description: Product remaining quantity
+                    example: 10
+                  minQuantity:
+                    type: integer
+                    description: Product minimum acceptable quantity
+                    example: 3
+                  description:
+                    type: string
+                    description: Product description
+                    example: Product description
+                    minimum: 12
+                    maximum: 100
+                  active:
+                    type: boolean
+                    description: Product active state
+                    example: true
+                  unitPrice:
+                    type: integer
+                    description: Price of one unit
+                    example: 50
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+    reviews:
+      GetAll:
+        tags:
+          - Reviews
+        summary: Get list of all reviews
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    reviews:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/ReviewDoc'
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+      GetProductReviews:
+        tags:
+          - Reviews
+          - Products
+        summary: Get all reviews of a given product
+        parameters:
+          - name: productId
+            in: path
+            description: ID of the product
+            required: true
+            schema:
+              type: string
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    reviews:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/ReviewDoc'
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+      GetOne:
+        tags:
+          - Reviews
+        summary: Get one review by ID
+        parameters:
+          - name: reviewId
+            in: path
+            description: ID of the review
+            required: true
+            schema:
+              type: string
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    review:
+                      $ref: '#/components/schemas/ReviewDetailsDoc'
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+      DeleteOne:
+        tags:
+          - Reviews
+        summary: Delete one review by ID
+        parameters:
+          - name: reviewId
+            in: path
+            description: ID of the review to delete
+            required: true
+            schema:
+              type: string
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+      EditOne:
+        tags:
+          - Reviews
+        summary: Edit one review by ID
+        parameters:
+          - name: reviewId
+            in: path
+            description: ID of the review to update
+            required: true
+            schema:
+              type: string
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  title:
+                    type: string
+                    description: Review title
+                    example: Review title
+                  content:
+                    type: string
+                    description: Review content
+                    example: Review content
+                    minimum: 12
+                    maximum: 100
+                  stars:
+                    type: integer
+                    description: Number of stars (from 0 to 5)
+                    minimum: 0
+                    maximum: 5
+                    example: 3
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+      Add:
+        tags:
+          - Reviews
+        summary: Add a review to a product
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  productId:
+                    type: string
+                    description: ID of the product the review will belong to
+                    example: 670f198f1fc4fdd76bd0AAAA
+                    required: true
+                  title:
+                    type: string
+                    description: Review title
+                    example: Review title
+                    required: true
+                  content:
+                    type: string
+                    description: Review content
+                    example: Review content
+                    required: true
+                    minimum: 12
+                    maximum: 100
+                  stars:
+                    type: integer
+                    description: Number of stars (from 0 to 5)
+                    minimum: 0
+                    maximum: 5
+                    example: 3
+                    required: true
+        responses:
+          '201':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    reviewId:
+                      type: string
+                      description: ID of the newly created review
+                      example: 670f198f1fc4fdd76bd0AAAA
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+    stores:
+      GetAll:
+        tags:
+          - Stores
+        summary: Get list of all stores
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    stores:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/StoreDoc'
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+      GetOne:
+        tags:
+          - Stores
+        summary: Get one store by ID
+        parameters:
+          - name: storeId
+            in: path
+            description: ID of the store
+            required: true
+            schema:
+              type: string
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    store:
+                      $ref: '#/components/schemas/StoreDetailsDoc'
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+      DeleteOne:
+        tags:
+          - Stores
+        summary: Delete one store by ID
+        parameters:
+          - name: storeId
+            in: path
+            description: ID of the store to delete
+            required: true
+            schema:
+              type: string
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+      Add:
+        tags:
+          - Stores
+        summary: Create one store for the current connected user
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: Store name
+                    example: Store name
+                    required: true
+                    minimum: 6
+                  description:
+                    type: string
+                    description: Store description
+                    example: Store description
+                    required: true
+                    minimum: 6
+                    maximum: 100
+                  active:
+                    type: boolean
+                    description: Store active state
+                    example: true
+                    required: true
+        responses:
+          '201':
+            description: Created
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    storeId:
+                      type: string
+                      description: The newly created store ID
+                      example: 670f198f1fc4fdd76bd0AAAA
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+      EditOne:
+        tags:
+          - Stores
+        summary: Edit one store by ID
+        parameters:
+          - name: storeId
+            in: path
+            description: ID of the store to update
+            required: true
+            schema:
+              type: string
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: Store name
+                    example: Store name
+                    minimum: 6
+                  description:
+                    type: string
+                    description: Store description
+                    example: Store description
+                    minimum: 6
+                    maximum: 100
+                  active:
+                    type: boolean
+                    description: Store active state
+                    example: true
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+      GetStoreProducts:
+        tags:
+          - Stores
+          - Products
+        summary: Get list of all products of a given store
+        parameters:
+          - name: storeId
+            in: path
+            description: Store ID
+            required: true
+            schema:
+              type: string
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    products:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/ProductDoc'
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+      DeleteStoreProduct:
+        tags:
+          - Stores
+          - Products
+        summary: Delete one product from store
+        parameters:
+          - name: productId
+            in: path
+            description: ID of the product to delete
+            required: true
+            schema:
+              type: string
+          - name: storeId
+            in: path
+            description: ID of the store the product belongs to
+            required: true
+            schema:
+              type: string
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+      AddProductToStore:
+        tags:
+          - Stores
+          - Products
+        summary: Add one product to a given store
+        parameters:
+          - name: storeId
+            in: path
+            description: ID of the store the product will belong to
+            required: true
+            schema:
+              type: string
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: Product name
+                    example: Product name
+                    required: true
+                  quantity:
+                    type: integer
+                    description: Product remaining quantity
+                    example: 10
+                    required: true
+                  description:
+                    type: string
+                    description: Product description
+                    example: Product description
+                    required: true
+                    minimum: 12
+                    maximum: 100
+                  minQuantity:
+                    type: integer
+                    description: Product minimum acceptable quantity inside the inventory
+                    example: 3
+                    required: true
+                  active:
+                    type: boolean
+                    description: Store active state
+                    example: true
+                    required: true
+                  unitPrice:
+                    type: integer
+                    description: Price of this product
+                    example: 100
+                    required: true
+        responses:
+          '201':
+            description: Created
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    productId:
+                      type: string
+                      description: The newly created product ID
+                      example: 670f198f1fc4fdd76bd0AAAA
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+    users:
+      GetAll:
+        tags:
+          - Users
+        summary: Get list of all users
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    users:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/UserDoc'
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+      GetOne:
+        tags:
+          - Users
+        summary: Get one user by ID
+        parameters:
+          - name: userId
+            in: path
+            description: ID of the user
+            required: true
+            schema:
+              type: string
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    user:
+                      $ref: '#/components/schemas/UserDetailsDoc'
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+      Signup:
+        tags:
+          - Users
+          - Auth
+        summary: Create a user
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                    description: User's name
+                    example: John
+                    minimum: 6
+                    required: true
+                  email:
+                    type: string
+                    description: User's email
+                    example: johndoe@mail.com
+                    required: true
+                  password:
+                    type: string
+                    description: User's password
+                    example: mlskdmqlksdmfl
+                    minimum: 6
+                    required: true
+                  role:
+                    type: string
+                    description: User's role
+                    example: admin
+                    enum:
+                      - admin
+                      - user
+                    required: true
+        responses:
+          '201':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    userId:
+                      type: string
+                      description: ID of the newly created user
+                      example: 670f198f1fc4fdd76bd0AAAA
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+      InvalidateToken:
+        tags:
+          - Users
+          - Auth
+        summary: Allow an admin user to invalidate the token of a given user
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: string
+                    description: ID of the user whose token will be invalidated
+                    example: 670f198f1fc4fdd76bd0AAAA
+                    required: true
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+      DeleteOne:
+        tags:
+          - Users
+        summary: Delete one user by ID
+        parameters:
+          - name: userId
+            in: path
+            description: ID of the user to delete
+            required: true
+            schema:
+              type: string
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+      EditOne:
+        tags:
+          - Users
+        summary: Edit one user by ID
+        parameters:
+          - name: userId
+            in: path
+            description: ID of the user to update
+            required: true
+            schema:
+              type: string
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                    description: New user's name
+                    example: John
+                  email:
+                    type: string
+                    description: New user's email
+                    example: johndoe@mail.com
+                  profile:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                        description: New user's role
+                        example: user
+                        enum:
+                          - user
+                          - admin
+        responses:
+          '200':
+            description: OK
+            content:
+              application/json:
+                schema:
+                  type: object
+          '400':
+            $ref: '#/components/errors/BadRequest'
+          '401':
+            $ref: '#/components/errors/Unauthorized'
+          '403':
+            $ref: '#/components/errors/Forbidden'
+          '404':
+            $ref: '#/components/errors/NotFound'
+          '500':
+            $ref: '#/components/errors/SthWentWrong'
+  schemas:
+    OrderDoc:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique ID of the order
+          example: 670f198f1fc4fdd76bd0AAAA
+        owner:
+          type: string
+          description: Unique ID of the order owner
+          example: 670f198f1fc4fdd76bd0AAAA
+        totalPrice:
+          type: interger
+          description: Total price of the order
+          example: 1500
+        orderNumber:
+          type: string
+          description: Order date + randomly generated order number
+          example: 21-10-2024-XXXX
+        status:
+          type: string
+          description: Current status of the order
+          enum:
+            - PENDING
+            - COMPLETED
+          example: PENDING
+        items:
+          type: array
+          description: Items to order
+          items:
+            type: object
+            properties:
+              productId:
+                type: string
+                description: ID of the product
+                example: 670f198f1fc4fdd76bd0AAAA
+              quantity:
+                type: integer
+                description: Amount of product to order
+                example: 3
+        createdAt:
+          type: string
+          format: date-time
+          description: Date of creation
+          example: 2024-10-19T17:30:37.831Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date of last update
+          example: 2024-10-19T17:30:37.831Z
+    OrderDetailsDoc:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique ID of the order
+          example: 670f198f1fc4fdd76bd0AAAA
+        owner:
+          type: string
+          description: Unique ID of the order owner
+          example: 670f198f1fc4fdd76bd0AAAA
+        totalPrice:
+          type: interger
+          description: Total price of the order
+          example: 1500
+        orderNumber:
+          type: string
+          description: Order date + randomly generated order number
+          example: 21-10-2024-XXXX
+        status:
+          type: string
+          description: Current status of the order
+          enum:
+            - PENDING
+            - COMPLETED
+          example: PENDING
+        items:
+          type: array
+          description: Items to order
+          items:
+            type: object
+            properties:
+              productId:
+                type: string
+                description: ID of the product
+                example: 670f198f1fc4fdd76bd0AAAA
+              quantity:
+                type: integer
+                description: Amount of product to order
+                example: 3
+              productDetails:
+                $ref: '#/components/schemas/ProductDoc'
+        createdAt:
+          type: string
+          format: date-time
+          description: Date of creation
+          example: 2024-10-19T17:30:37.831Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date of last update
+          example: 2024-10-19T17:30:37.831Z
+    ProductDoc:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique ID of the product
+          example: 670f198f1fc4fdd76bd0AAAA
+        name:
+          type: string
+          description: Name of the product
+          example: 'Product name #1'
+        quantity:
+          type: interger
+          description: Current remaining quantity of the product
+          example: 8
+        storeId:
+          type: string
+          description: Unique ID of the owner's store
+          example: 670f198f1fc4fdd76bd0AAAA
+        description:
+          type: string
+          description: Product description
+          example: 'Product description #1'
+        minQuantity:
+          type: interger
+          description: Miminum acceptable quantity of the product inside the inventory
+          example: 3
+        owner:
+          type: string
+          description: Unique ID of the product owner
+          example: 670f198f1fc4fdd76bd0AAAA
+        active:
+          type: boolean
+          description: Active state
+          example: true
+        unitPrice:
+          type: interger
+          description: Price of one product
+          example: 500
+        createdAt:
+          type: string
+          format: date-time
+          description: Date of creation
+          example: 2024-10-19T17:30:37.831Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date of last update
+          example: 2024-10-19T17:30:37.831Z
+        reviews:
+          type: array
+          description: Uniq reviews IDs of this product
+          items:
+            type: string
+            example: 670f198f1fc4fdd76bd0AAAA
+    ProductDetailsDoc:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique ID of the product
+          example: 670f198f1fc4fdd76bd0AAAA
+        name:
+          type: string
+          description: Name of the product
+          example: 'Product name #1'
+        quantity:
+          type: interger
+          description: Current remaining quantity of the product
+          example: 8
+        storeId:
+          type: string
+          description: Unique ID of the owner's store
+          example: 670f198f1fc4fdd76bd0AAAA
+        description:
+          type: string
+          description: Product description
+          example: 'Product description #1'
+        minQuantity:
+          type: interger
+          description: Miminum acceptable quantity of the product inside the inventory
+          example: 3
+        owner:
+          type: string
+          description: Unique ID of the product owner
+          example: 670f198f1fc4fdd76bd0AAAA
+        active:
+          type: boolean
+          description: Active state
+          example: true
+        unitPrice:
+          type: interger
+          description: Price of one product
+          example: 500
+        createdAt:
+          type: string
+          format: date-time
+          description: Date of creation
+          example: 2024-10-19T17:30:37.831Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date of last update
+          example: 2024-10-19T17:30:37.831Z
+        reviews:
+          type: array
+          description: Uniq reviews IDs of this product
+          items:
+            type: string
+            example: 670f198f1fc4fdd76bd0AAAA
+        reviewDetails:
+          type: array
+          description: All reviews of the product
+          items:
+            $ref: '#/components/schemas/ReviewDoc'
+    ReviewDoc:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique ID of the review
+          example: 670f198f1fc4fdd76bd0AAAA
+        title:
+          type: string
+          description: Title of the review
+          example: 'Review title #1'
+        content:
+          type: string
+          description: Unique ID of the store owner
+          example: 'Review content #1'
+        stars:
+          type: integer
+          description: Number of stars (from 0 to 5)
+          example: 4
+        productId:
+          type: string
+          description: ID of the product a review belongs to
+          example: 670f198f1fc4fdd76bd0AAAA
+        owner:
+          type: string
+          description: ID of the user who left the review
+          example: 670f198f1fc4fdd76bd0AAAA
+        createdAt:
+          type: string
+          format: date-time
+          description: Date of creation
+          example: 2024-10-19T17:30:37.831Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date of last update
+          example: 2024-10-19T17:30:37.831Z
+    ReviewDetailsDoc:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique ID of the review
+          example: 670f198f1fc4fdd76bd0AAAA
+        title:
+          type: string
+          description: Title of the review
+          example: 'Review title #1'
+        content:
+          type: string
+          description: Unique ID of the store owner
+          example: 'Review content #1'
+        stars:
+          type: integer
+          description: Number of stars (from 0 to 5)
+          example: 4
+        productId:
+          type: string
+          description: ID of the product a review belongs to
+          example: 670f198f1fc4fdd76bd0AAAA
+        owner:
+          type: string
+          description: ID of the user who left the review
+          example: 670f198f1fc4fdd76bd0AAAA
+        createdAt:
+          type: string
+          format: date-time
+          description: Date of creation
+          example: 2024-10-19T17:30:37.831Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date of last update
+          example: 2024-10-19T17:30:37.831Z
+        ownerDetails:
+          $ref: '#/components/schemas/UserDoc'
+        productDetails:
+          $ref: '#/components/schemas/ProductDoc'
+    StoreDoc:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique ID of the store
+          example: 670f198f1fc4fdd76bd0AAAA
+        name:
+          type: string
+          description: Name of the store
+          example: 'Store name #1'
+        owner:
+          type: string
+          description: Unique ID of the store owner
+          example: 670f198f1fc4fdd76bd0AAAA
+        products:
+          type: array
+          description: Uniq product IDs of this store
+          items:
+            type: string
+            example: 670f198f1fc4fdd76bd0AAAA
+        description:
+          type: string
+          description: Store description
+          example: 'Store description #1'
+        active:
+          type: boolean
+          description: Active state
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          description: Date of creation
+          example: 2024-10-19T17:30:37.831Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date of last update
+          example: 2024-10-19T17:30:37.831Z
+    StoreDetailsDoc:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique ID of the store
+          example: 670f198f1fc4fdd76bd0AAAA
+        name:
+          type: string
+          description: Name of the store
+          example: 'Store name #1'
+        owner:
+          type: string
+          description: Unique ID of the store owner
+          example: 670f198f1fc4fdd76bd0AAAA
+        ownerDetails:
+          $ref: '#components/schemas/UserDoc'
+        products:
+          type: array
+          description: Uniq product IDs of this store
+          items:
+            type: string
+            example: 670f198f1fc4fdd76bd0AAAA
+        description:
+          type: string
+          description: Store description
+          example: 'Store description #1'
+        active:
+          type: boolean
+          description: Active state
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          description: Date of creation
+          example: 2024-10-19T17:30:37.831Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date of last update
+          example: 2024-10-19T17:30:37.831Z
+    UserDoc:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique ID of the user
+          example: 670f198f1fc4fdd76bd0AAAA
+        username:
+          type: string
+          description: Name of the user
+          example: 'Username #1'
+        email:
+          type: string
+          description: Email of the user
+          example: username@mail.com
+        createdAt:
+          type: string
+          format: date-time
+          description: Date of creation
+          example: 2024-10-19T17:30:37.831Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date of last update
+          example: 2024-10-19T17:30:37.831Z
+        profile:
+          type: object
+          description: User profile informations
+          properties:
+            role:
+              type: string
+              description: User role
+              example: admin
+        storeIds:
+          type: array
+          description: Uniq store IDs of this user
+          items:
+            type: string
+            example: 670f198f1fc4fdd76bd0AAAA
+    UserDetailsDoc:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique ID of the user
+          example: 670f198f1fc4fdd76bd0AAAA
+        username:
+          type: string
+          description: Name of the user
+          example: 'Username #1'
+        email:
+          type: string
+          description: Email of the user
+          example: username@mail.com
+        createdAt:
+          type: string
+          format: date-time
+          description: Date of creation
+          example: 2024-10-19T17:30:37.831Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date of last update
+          example: 2024-10-19T17:30:37.831Z
+        profile:
+          type: object
+          description: User profile informations
+          properties:
+            role:
+              type: string
+              description: User role
+              example: admin
+        storeIds:
+          type: array
+          description: Uniq store IDs of this user
+          items:
+            type: string
+            example: 670f198f1fc4fdd76bd0AAAA
+        storesDetails:
+          type: array
+          description: Details of each store owned by this user
+          items:
+            $ref: '#/components/schemas/StoreDoc'
+  errors:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                statusCode:
+                  type: number
+                  example: 400
+                publicMessage:
+                  type: string
+                  example: Bad request
+    Forbidden:
+      description: Forbiden
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                statusCode:
+                  type: number
+                  example: 403
+                publicMessage:
+                  type: string
+                  example: Forbiden
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                statusCode:
+                  type: number
+                  example: 401
+                publicMessage:
+                  type: string
+                  example: Unauthorized
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                statusCode:
+                  type: number
+                  example: 404
+                publicMessage:
+                  type: string
+                  example: Not found
+    DuplicatedResource:
+      description: Duplicated resource
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                statusCode:
+                  type: number
+                  example: 409
+                publicMessage:
+                  type: string
+                  example: Duplicated resource
+    SthWentWrong:
+      description: Something went wrong
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                statusCode:
+                  type: number
+                  example: 500
+                publicMessage:
+                  type: string
+                  example: Something went wrong
+security:
+  - bearerAuth: []
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      $ref: '#/components/routes/auth/Login'
+  /auth/refreshToken:
+    post:
+      tags:
+        - Auth
+      $ref: '#/components/routes/auth/RefreshToken'
+  /users:
+    get:
+      tags:
+        - Users
+      $ref: '#/components/routes/users/GetAll'
+    post:
+      tags:
+        - Users
+        - Auth
+      $ref: '#/components/routes/users/Signup'
+  /users/invalidateToken:
+    post:
+      tags:
+        - Users
+        - Auth
+      $ref: '#/components/routes/users/InvalidateToken'
+  /users/me/orders:
+    get:
+      tags:
+        - Orders
+        - Users
+      $ref: '#/components/routes/orders/GetUserOrders'
+  /users/{userId}:
+    get:
+      tags:
+        - Users
+      $ref: '#/components/routes/users/GetOne'
+    patch:
+      tags:
+        - Users
+      $ref: '#/components/routes/users/EditOne'
+    delete:
+      tags:
+        - Users
+      $ref: '#/components/routes/users/DeleteOne'
+  /stores:
+    get:
+      tags:
+        - Stores
+      $ref: '#/components/routes/stores/GetAll'
+    post:
+      tags:
+        - Stores
+      $ref: '#/components/routes/stores/Add'
+  /stores/{storeId}:
+    get:
+      tags:
+        - Stores
+      $ref: '#/components/routes/stores/GetOne'
+    delete:
+      tags:
+        - Stores
+      $ref: '#/components/routes/stores/DeleteOne'
+    patch:
+      tags:
+        - Stores
+      $ref: '#/components/routes/stores/EditOne'
+  /stores/{storeId}/products:
+    get:
+      tags:
+        - Stores
+        - Products
+      $ref: '#/components/routes/stores/GetStoreProducts'
+    post:
+      tags:
+        - Stores
+        - Products
+      $ref: '#/components/routes/stores/AddProductToStore'
+  /stores/{storeId}/products/{productId}:
+    delete:
+      tags:
+        - Stores
+        - Products
+      $ref: '#/components/routes/stores/DeleteStoreProduct'
+  /products:
+    get:
+      tags:
+        - Products
+      $ref: '#/components/routes/products/GetAll'
+  /products/{productId}:
+    get:
+      tags:
+        - Products
+      $ref: '#/components/routes/products/GetOne'
+    delete:
+      tags:
+        - Products
+      $ref: '#/components/routes/products/DeleteOne'
+    patch:
+      tags:
+        - Products
+      $ref: '#/components/routes/products/EditOne'
+  /products/{productId}/reviews:
+    get:
+      tags:
+        - Reviews
+        - Products
+      $ref: '#/components/routes/reviews/GetProductReviews'
+  /reviews:
+    get:
+      tags:
+        - Reviews
+      $ref: '#/components/routes/reviews/GetAll'
+    post:
+      tags:
+        - Reviews
+      $ref: '#/components/routes/reviews/Add'
+  /reviews/{reviewId}:
+    get:
+      tags:
+        - Reviews
+      $ref: '#/components/routes/reviews/GetOne'
+    delete:
+      tags:
+        - Reviews
+      $ref: '#/components/routes/reviews/DeleteOne'
+    patch:
+      tags:
+        - Reviews
+      $ref: '#/components/routes/reviews/EditOne'
+  /orders:
+    get:
+      tags:
+        - Orders
+      $ref: '#/components/routes/orders/GetAll'
+    post:
+      tags:
+        - Orders
+      $ref: '#/components/routes/orders/Add'
+  /orders/{orderId}:
+    get:
+      tags:
+        - Orders
+      $ref: '#/components/routes/orders/GetOne'
+    patch:
+      tags:
+        - Orders
+      $ref: '#/components/routes/orders/EditOne'
+    delete:
+      tags:
+        - Orders
+      $ref: '#/components/routes/orders/DeleteOne'

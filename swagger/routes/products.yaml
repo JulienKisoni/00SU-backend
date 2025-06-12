@@ -1,0 +1,148 @@
+components:
+  routes:
+    GetAll:
+      tags:
+        - Products
+      summary: Get list of all products
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProductDoc'
+        '400':
+          $ref: '#/components/errors/BadRequest'
+        '401':
+          $ref: '#/components/errors/Unauthorized'
+        '403':
+          $ref: '#/components/errors/Forbidden'
+        '404':
+          $ref: '#/components/errors/NotFound'
+        '500':
+          $ref: '#/components/errors/SthWentWrong'
+    GetOne:
+      tags:
+        - Products
+      summary: Get one product by ID
+      parameters:
+        - name: productId
+          in: path
+          description: ID of the product
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  product:
+                    $ref: '#/components/schemas/ProductDetailsDoc'
+        '400':
+          $ref: '#/components/errors/BadRequest'
+        '401':
+          $ref: '#/components/errors/Unauthorized'
+        '403':
+          $ref: '#/components/errors/Forbidden'
+        '404':
+          $ref: '#/components/errors/NotFound'
+        '500':
+          $ref: '#/components/errors/SthWentWrong'
+    DeleteOne:
+      tags:
+        - Products
+      summary: Delete one product by ID
+      parameters:
+        - name: productId
+          in: path
+          description: ID of the product to delete
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/errors/BadRequest'
+        '401':
+          $ref: '#/components/errors/Unauthorized'
+        '403':
+          $ref: '#/components/errors/Forbidden'
+        '404':
+          $ref: '#/components/errors/NotFound'
+        '500':
+          $ref: '#/components/errors/SthWentWrong'
+    EditOne:
+      tags:
+        - Products
+      summary: Edit one product by ID
+      parameters:
+        - name: productId
+          in: path
+          description: ID of the product to update
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Product name
+                  example: Product name
+                quantity:
+                  type: integer
+                  description: Product remaining quantity
+                  example: 10
+                minQuantity:
+                  type: integer
+                  description: Product minimum acceptable quantity
+                  example: 3
+                description:
+                  type: string
+                  description: Product description
+                  example: Product description
+                  minimum: 12
+                  maximum: 100
+                active:
+                  type: boolean
+                  description: Product active state
+                  example: true
+                unitPrice:
+                  type: integer
+                  description: Price of one unit
+                  example: 50
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/errors/BadRequest'
+        '401':
+          $ref: '#/components/errors/Unauthorized'
+        '403':
+          $ref: '#/components/errors/Forbidden'
+        '404':
+          $ref: '#/components/errors/NotFound'
+        '500':
+          $ref: '#/components/errors/SthWentWrong'

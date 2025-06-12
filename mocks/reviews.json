@@ -1,0 +1,16 @@
+[
+  {
+    "title": "Review title #1",
+    "content": "Review content #1",
+    "stars": 3,
+    "productId": "",
+    "owner": ""
+  },
+  {
+    "title": "Review title #2",
+    "content": "Review content #2",
+    "stars": 4,
+    "productId": "",
+    "owner": ""
+  }
+]

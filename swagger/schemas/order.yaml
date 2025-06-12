@@ -1,0 +1,104 @@
+components:
+  schemas:
+    OrderDoc:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique ID of the order
+          example: 670f198f1fc4fdd76bd0AAAA
+        owner:
+          type: string
+          description: Unique ID of the order owner
+          example: 670f198f1fc4fdd76bd0AAAA
+        totalPrice:
+          type: interger
+          description: Total price of the order
+          example: 1500
+        orderNumber:
+          type: string
+          description: Order date + randomly generated order number
+          example: 21-10-2024-XXXX
+        status:
+          type: string
+          description: Current status of the order
+          enum:
+            - PENDING
+            - COMPLETED
+          example: 'PENDING'
+        items:
+          type: array
+          description: Items to order
+          items:
+            type: object
+            properties:
+              productId:
+                type: string
+                description: ID of the product
+                example: 670f198f1fc4fdd76bd0AAAA
+              quantity:
+                type: integer
+                description: Amount of product to order
+                example: 3
+        createdAt:
+          type: string
+          format: date-time
+          description: Date of creation
+          example: 2024-10-19T17:30:37.831Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date of last update
+          example: 2024-10-19T17:30:37.831Z
+    OrderDetailsDoc:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique ID of the order
+          example: 670f198f1fc4fdd76bd0AAAA
+        owner:
+          type: string
+          description: Unique ID of the order owner
+          example: 670f198f1fc4fdd76bd0AAAA
+        totalPrice:
+          type: interger
+          description: Total price of the order
+          example: 1500
+        orderNumber:
+          type: string
+          description: Order date + randomly generated order number
+          example: 21-10-2024-XXXX
+        status:
+          type: string
+          description: Current status of the order
+          enum:
+            - PENDING
+            - COMPLETED
+          example: 'PENDING'
+        items:
+          type: array
+          description: Items to order
+          items:
+            type: object
+            properties:
+              productId:
+                type: string
+                description: ID of the product
+                example: 670f198f1fc4fdd76bd0AAAA
+              quantity:
+                type: integer
+                description: Amount of product to order
+                example: 3
+              productDetails:
+                $ref: '#/components/schemas/ProductDoc'
+        createdAt:
+          type: string
+          format: date-time
+          description: Date of creation
+          example: 2024-10-19T17:30:37.831Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date of last update
+          example: 2024-10-19T17:30:37.831Z

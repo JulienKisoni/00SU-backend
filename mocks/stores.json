@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Store name #1",
+    "description": "Store description #1",
+    "active": true,
+    "owner": ""
+  },
+  {
+    "name": "Store name #2",
+    "description": "Store description #2",
+    "active": false,
+    "owner": ""
+  }
+]

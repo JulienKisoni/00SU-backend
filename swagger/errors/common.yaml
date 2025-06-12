@@ -1,0 +1,92 @@
+components:
+  errors:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                statusCode:
+                  type: number
+                  example: 400
+                publicMessage:
+                  type: string
+                  example: 'Bad request'
+    Forbidden:
+      description: Forbiden
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                statusCode:
+                  type: number
+                  example: 403
+                publicMessage:
+                  type: string
+                  example: 'Forbiden'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                statusCode:
+                  type: number
+                  example: 401
+                publicMessage:
+                  type: string
+                  example: 'Unauthorized'
+    NotFound:
+      description: 'Not found'
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                statusCode:
+                  type: number
+                  example: 404
+                publicMessage:
+                  type: string
+                  example: 'Not found'
+    DuplicatedResource:
+      description: 'Duplicated resource'
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                statusCode:
+                  type: number
+                  example: 409
+                publicMessage:
+                  type: string
+                  example: 'Duplicated resource'
+    SthWentWrong:
+      description: 'Something went wrong'
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                statusCode:
+                  type: number
+                  example: 500
+                publicMessage:
+                  type: string
+                  example: 'Something went wrong'

@@ -1,0 +1,80 @@
+components:
+  schemas:
+    ReviewDoc:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique ID of the review
+          example: 670f198f1fc4fdd76bd0AAAA
+        title:
+          type: string
+          description: Title of the review
+          example: 'Review title #1'
+        content:
+          type: string
+          description: Unique ID of the store owner
+          example: 'Review content #1'
+        stars:
+          type: integer
+          description: Number of stars (from 0 to 5)
+          example: 4
+        productId:
+          type: string
+          description: ID of the product a review belongs to
+          example: 670f198f1fc4fdd76bd0AAAA
+        owner:
+          type: string
+          description: ID of the user who left the review
+          example: 670f198f1fc4fdd76bd0AAAA
+        createdAt:
+          type: string
+          format: date-time
+          description: Date of creation
+          example: 2024-10-19T17:30:37.831Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date of last update
+          example: 2024-10-19T17:30:37.831Z
+    ReviewDetailsDoc:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique ID of the review
+          example: 670f198f1fc4fdd76bd0AAAA
+        title:
+          type: string
+          description: Title of the review
+          example: 'Review title #1'
+        content:
+          type: string
+          description: Unique ID of the store owner
+          example: 'Review content #1'
+        stars:
+          type: integer
+          description: Number of stars (from 0 to 5)
+          example: 4
+        productId:
+          type: string
+          description: ID of the product a review belongs to
+          example: 670f198f1fc4fdd76bd0AAAA
+        owner:
+          type: string
+          description: ID of the user who left the review
+          example: 670f198f1fc4fdd76bd0AAAA
+        createdAt:
+          type: string
+          format: date-time
+          description: Date of creation
+          example: 2024-10-19T17:30:37.831Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date of last update
+          example: 2024-10-19T17:30:37.831Z
+        ownerDetails:
+          $ref: '#/components/schemas/UserDoc'
+        productDetails:
+          $ref: '#/components/schemas/ProductDoc'

@@ -1,0 +1,32 @@
+{
+  "copyFiles": [
+    {
+      "from": "./swagger/errors",
+      "to": "./dist/swagger/errors"
+    },
+    {
+      "from": "./swagger/routes",
+      "to": "./dist/swagger/routes"
+    },
+    {
+      "from": "./swagger/schemas",
+      "to": "./dist/swagger/schemas"
+    },
+    {
+      "from": "./mocks",
+      "to": "./dist/mocks"
+    },
+    {
+      "from": "./swagger/initial.yaml",
+      "to": "./dist/swagger/initial.yaml"
+    },
+    {
+      "from": "./swagger/swagger.yaml",
+      "to": "./dist/swagger/swagger.yaml"
+    },
+    {
+      "from": ".env",
+      "to": "./dist/.env"
+    }
+  ]
+}

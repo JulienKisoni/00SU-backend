@@ -1,0 +1,85 @@
+components:
+  schemas:
+    UserDoc:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique ID of the user
+          example: 670f198f1fc4fdd76bd0AAAA
+        username:
+          type: string
+          description: Name of the user
+          example: 'Username #1'
+        email:
+          type: string
+          description: Email of the user
+          example: 'username@mail.com'
+        createdAt:
+          type: string
+          format: date-time
+          description: Date of creation
+          example: 2024-10-19T17:30:37.831Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date of last update
+          example: 2024-10-19T17:30:37.831Z
+        profile:
+          type: object
+          description: User profile informations
+          properties:
+            role:
+              type: string
+              description: User role
+              example: 'admin'
+        storeIds:
+          type: array
+          description: Uniq store IDs of this user
+          items:
+            type: string
+            example: 670f198f1fc4fdd76bd0AAAA
+    UserDetailsDoc:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique ID of the user
+          example: 670f198f1fc4fdd76bd0AAAA
+        username:
+          type: string
+          description: Name of the user
+          example: 'Username #1'
+        email:
+          type: string
+          description: Email of the user
+          example: 'username@mail.com'
+        createdAt:
+          type: string
+          format: date-time
+          description: Date of creation
+          example: 2024-10-19T17:30:37.831Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date of last update
+          example: 2024-10-19T17:30:37.831Z
+        profile:
+          type: object
+          description: User profile informations
+          properties:
+            role:
+              type: string
+              description: User role
+              example: 'admin'
+        storeIds:
+          type: array
+          description: Uniq store IDs of this user
+          items:
+            type: string
+            example: 670f198f1fc4fdd76bd0AAAA
+        storesDetails:
+          type: array
+          description: Details of each store owned by this user
+          items:
+            $ref: '#/components/schemas/StoreDoc'

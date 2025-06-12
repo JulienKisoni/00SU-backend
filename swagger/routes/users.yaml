@@ -1,0 +1,233 @@
+components:
+  routes:
+    GetAll:
+      tags:
+        - Users
+      summary: Get list of all users
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UserDoc'
+        '400':
+          $ref: '#/components/errors/BadRequest'
+        '401':
+          $ref: '#/components/errors/Unauthorized'
+        '403':
+          $ref: '#/components/errors/Forbidden'
+        '404':
+          $ref: '#/components/errors/NotFound'
+        '500':
+          $ref: '#/components/errors/SthWentWrong'
+    GetOne:
+      tags:
+        - Users
+      summary: Get one user by ID
+      parameters:
+        - name: userId
+          in: path
+          description: ID of the user
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/UserDetailsDoc'
+        '400':
+          $ref: '#/components/errors/BadRequest'
+        '401':
+          $ref: '#/components/errors/Unauthorized'
+        '403':
+          $ref: '#/components/errors/Forbidden'
+        '404':
+          $ref: '#/components/errors/NotFound'
+        '500':
+          $ref: '#/components/errors/SthWentWrong'
+    Signup:
+      tags:
+        - Users
+        - Auth
+      summary: Create a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: "User's name"
+                  example: John
+                  minimum: 6
+                  required: true
+                email:
+                  type: string
+                  description: "User's email"
+                  example: johndoe@mail.com
+                  required: true
+                password:
+                  type: string
+                  description: "User's password"
+                  example: mlskdmqlksdmfl
+                  minimum: 6
+                  required: true
+                role:
+                  type: string
+                  description: "User's role"
+                  example: admin
+                  enum:
+                    - admin
+                    - user
+                  required: true
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: string
+                    description: ID of the newly created user
+                    example: 670f198f1fc4fdd76bd0AAAA
+        '400':
+          $ref: '#/components/errors/BadRequest'
+        '401':
+          $ref: '#/components/errors/Unauthorized'
+        '403':
+          $ref: '#/components/errors/Forbidden'
+        '404':
+          $ref: '#/components/errors/NotFound'
+        '500':
+          $ref: '#/components/errors/SthWentWrong'
+    InvalidateToken:
+      tags:
+        - Users
+        - Auth
+      summary: Allow an admin user to invalidate the token of a given user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  description: ID of the user whose token will be invalidated
+                  example: 670f198f1fc4fdd76bd0AAAA
+                  required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/errors/BadRequest'
+        '401':
+          $ref: '#/components/errors/Unauthorized'
+        '403':
+          $ref: '#/components/errors/Forbidden'
+        '404':
+          $ref: '#/components/errors/NotFound'
+        '500':
+          $ref: '#/components/errors/SthWentWrong'
+    DeleteOne:
+      tags:
+        - Users
+      summary: Delete one user by ID
+      parameters:
+        - name: userId
+          in: path
+          description: ID of the user to delete
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/errors/BadRequest'
+        '401':
+          $ref: '#/components/errors/Unauthorized'
+        '403':
+          $ref: '#/components/errors/Forbidden'
+        '404':
+          $ref: '#/components/errors/NotFound'
+        '500':
+          $ref: '#/components/errors/SthWentWrong'
+    EditOne:
+      tags:
+        - Users
+      summary: Edit one user by ID
+      parameters:
+        - name: userId
+          in: path
+          description: ID of the user to update
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: "New user's name"
+                  example: John
+                email:
+                  type: string
+                  description: "New user's email"
+                  example: johndoe@mail.com
+                profile:
+                  type: object
+                  properties:
+                    role:
+                      type: string
+                      description: "New user's role"
+                      example: user
+                      enum:
+                        - user
+                        - admin
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/errors/BadRequest'
+        '401':
+          $ref: '#/components/errors/Unauthorized'
+        '403':
+          $ref: '#/components/errors/Forbidden'
+        '404':
+          $ref: '#/components/errors/NotFound'
+        '500':
+          $ref: '#/components/errors/SthWentWrong'

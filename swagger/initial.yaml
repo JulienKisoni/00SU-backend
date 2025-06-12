@@ -1,0 +1,181 @@
+openapi: 3.0.0
+info:
+  title: Store Manager Rest API
+  description: Endpoints documentation for Store Manager Rest API
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8000/'
+tags:
+  - name: Auth
+    description: Authentication & Authorization endpoints
+  - name: Users
+    description: Users CRUD operations
+  - name: Stores
+    description: Stores CRUD operations
+  - name: Products
+    description: Products CRUD operations
+  - name: Reviews
+    description: Reviews CRUD operations
+  - name: Orders
+    description: Orders CRUD operations
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Bearer
+security:
+  - bearerAuth: []
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      $ref: '#/components/routes/auth/Login'
+  /auth/refreshToken:
+    post:
+      tags:
+        - Auth
+      $ref: '#/components/routes/auth/RefreshToken'
+  /users:
+    get:
+      tags:
+        - Users
+      $ref: '#/components/routes/users/GetAll'
+    post:
+      tags:
+        - Users
+        - Auth
+      $ref: '#/components/routes/users/Signup'
+  /users/invalidateToken:
+    post:
+      tags:
+        - Users
+        - Auth
+      $ref: '#/components/routes/users/InvalidateToken'
+  /users/me/orders:
+    get:
+      tags:
+        - Orders
+        - Users
+      $ref: '#/components/routes/orders/GetUserOrders'
+  /users/{userId}:
+    get:
+      tags:
+        - Users
+      $ref: '#/components/routes/users/GetOne'
+    patch:
+      tags:
+        - Users
+      $ref: '#/components/routes/users/EditOne'
+    delete:
+      tags:
+        - Users
+      $ref: '#/components/routes/users/DeleteOne'
+  /stores:
+    get:
+      tags:
+        - Stores
+      $ref: '#/components/routes/stores/GetAll'
+    post:
+      tags:
+        - Stores
+      $ref: '#/components/routes/stores/Add'
+  /stores/{storeId}:
+    get:
+      tags:
+        - Stores
+      $ref: '#/components/routes/stores/GetOne'
+    delete:
+      tags:
+        - Stores
+      $ref: '#/components/routes/stores/DeleteOne'
+    patch:
+      tags:
+        - Stores
+      $ref: '#/components/routes/stores/EditOne'
+  /stores/{storeId}/products:
+    get:
+      tags:
+        - Stores
+        - Products
+      $ref: '#/components/routes/stores/GetStoreProducts'
+    post:
+      tags:
+        - Stores
+        - Products
+      $ref: '#/components/routes/stores/AddProductToStore'
+  /stores/{storeId}/products/{productId}:
+    delete:
+      tags:
+        - Stores
+        - Products
+      $ref: '#/components/routes/stores/DeleteStoreProduct'
+  /products:
+    get:
+      tags:
+        - Products
+      $ref: '#/components/routes/products/GetAll'
+  /products/{productId}:
+    get:
+      tags:
+        - Products
+      $ref: '#/components/routes/products/GetOne'
+    delete:
+      tags:
+        - Products
+      $ref: '#/components/routes/products/DeleteOne'
+    patch:
+      tags:
+        - Products
+      $ref: '#/components/routes/products/EditOne'
+  /products/{productId}/reviews:
+    get:
+      tags:
+        - Reviews
+        - Products
+      $ref: '#/components/routes/reviews/GetProductReviews'
+  /reviews:
+    get:
+      tags:
+        - Reviews
+      $ref: '#/components/routes/reviews/GetAll'
+    post:
+      tags:
+        - Reviews
+      $ref: '#/components/routes/reviews/Add'
+  /reviews/{reviewId}:
+    get:
+      tags:
+        - Reviews
+      $ref: '#/components/routes/reviews/GetOne'
+    delete:
+      tags:
+        - Reviews
+      $ref: '#/components/routes/reviews/DeleteOne'
+    patch:
+      tags:
+        - Reviews
+      $ref: '#/components/routes/reviews/EditOne'
+  /orders:
+    get:
+      tags:
+        - Orders
+      $ref: '#/components/routes/orders/GetAll'
+    post:
+      tags:
+        - Orders
+      $ref: '#/components/routes/orders/Add'
+  /orders/{orderId}:
+    get:
+      tags:
+        - Orders
+      $ref: '#/components/routes/orders/GetOne'
+    patch:
+      tags:
+        - Orders
+      $ref: '#/components/routes/orders/EditOne'
+    delete:
+      tags:
+        - Orders
+      $ref: '#/components/routes/orders/DeleteOne'

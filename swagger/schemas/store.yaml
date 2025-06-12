@@ -1,0 +1,82 @@
+components:
+  schemas:
+    StoreDoc:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique ID of the store
+          example: 670f198f1fc4fdd76bd0AAAA
+        name:
+          type: string
+          description: Name of the store
+          example: 'Store name #1'
+        owner:
+          type: string
+          description: Unique ID of the store owner
+          example: 670f198f1fc4fdd76bd0AAAA
+        products:
+          type: array
+          description: Uniq product IDs of this store
+          items:
+            type: string
+            example: 670f198f1fc4fdd76bd0AAAA
+        description:
+          type: string
+          description: Store description
+          example: 'Store description #1'
+        active:
+          type: boolean
+          description: Active state
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          description: Date of creation
+          example: 2024-10-19T17:30:37.831Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date of last update
+          example: 2024-10-19T17:30:37.831Z
+    StoreDetailsDoc:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Unique ID of the store
+          example: 670f198f1fc4fdd76bd0AAAA
+        name:
+          type: string
+          description: Name of the store
+          example: 'Store name #1'
+        owner:
+          type: string
+          description: Unique ID of the store owner
+          example: 670f198f1fc4fdd76bd0AAAA
+        ownerDetails:
+          $ref: '#components/schemas/UserDoc'
+        products:
+          type: array
+          description: Uniq product IDs of this store
+          items:
+            type: string
+            example: 670f198f1fc4fdd76bd0AAAA
+        description:
+          type: string
+          description: Store description
+          example: 'Store description #1'
+        active:
+          type: boolean
+          description: Active state
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          description: Date of creation
+          example: 2024-10-19T17:30:37.831Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date of last update
+          example: 2024-10-19T17:30:37.831Z
