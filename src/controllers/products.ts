@@ -78,7 +78,7 @@ export const addProduct = async (req: ExtendedRequest<AddProductBody>, res: Resp
   res.status(HTTP_STATUS_CODES.CREATED).json(data);
 };
 
-export const getAllProducts = async (_req: Request, res: Response, _next: NextFunction) => {
+export const getAllProducts = async (_req: Request, res: Response) => {
   const { products } = await productBusiness.getAllProducts();
   res.status(HTTP_STATUS_CODES.OK).json({ products });
 };

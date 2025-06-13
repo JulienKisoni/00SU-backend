@@ -25,7 +25,7 @@ export class GenericError extends Error {
   }
 }
 
-export const errorHandler = async (error: GenericError, req: ExtendedRequest<any>, res: Response, _next: NextFunction) => {
+export const errorHandler = async (error: GenericError, req: ExtendedRequest<unknown>, res: Response) => {
   const { statusCode = HTTP_STATUS_CODES.STH_WENT_WRONG, message, publicMessage = 'Something went wrong', stack } = error;
   const exception = `Public message | ${publicMessage} | Stack: ${stack || message}`;
   Logger.error(exception);

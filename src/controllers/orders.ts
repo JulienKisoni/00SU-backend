@@ -50,7 +50,7 @@ export const addOrder = async (req: ExtendedRequest<AddOrderBody>, res: Response
   res.status(HTTP_STATUS_CODES.CREATED).json(data);
 };
 
-export const getAllOrders = async (_req: ExtendedRequest<undefined>, res: Response, _next: NextFunction) => {
+export const getAllOrders = async (_req: ExtendedRequest<undefined>, res: Response) => {
   const { data } = await orderBusiness.getAllOrders();
   res.status(HTTP_STATUS_CODES.OK).json(data);
 };

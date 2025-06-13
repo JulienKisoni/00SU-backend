@@ -42,7 +42,7 @@ export const rateLimitConfig: Partial<Options> = {
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   skipSuccessfulRequests: true,
-  handler: (req: ExtendedRequest<any>, __, next, options) => {
+  handler: (req: ExtendedRequest<unknown>, __, next, options) => {
     const error = createError({
       statusCode: HTTP_STATUS_CODES.FORBIDEN,
       message: options.message,
