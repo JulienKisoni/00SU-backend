@@ -3,13 +3,13 @@ import isEmpty from 'lodash.isempty';
 import { verify } from 'jsonwebtoken';
 import { UpdateQuery } from 'mongoose';
 
-import { IStoreDocument, IUserDocument, RetreiveOneFilters, USER_ROLES } from '../types/models';
+import { IStoreDocument, IUserDocument, RetrieveOneFilters, USER_ROLES } from '../types/models';
 import { IUserMethods, UserModel } from '../models/user';
 import { createError, GenericError } from '../middlewares/errors';
 import { encrypt } from '../utils/hash';
 import { HTTP_STATUS_CODES } from '../types/enums';
 
-const retrieveUser = async (filters: RetreiveOneFilters<IUserDocument>): Promise<IUserDocument | null> => {
+const retrieveUser = async (filters: RetrieveOneFilters<IUserDocument>): Promise<IUserDocument | null> => {
   const user = (await UserModel.findOne(filters).populate({ path: 'storeIds' }).lean().exec()) as IUserDocument;
   if (!user || user === null) {
     return null;

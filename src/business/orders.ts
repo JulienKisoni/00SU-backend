@@ -2,14 +2,14 @@ import ShortUniqueId from 'short-unique-id';
 import omit from 'lodash.omit';
 import isEmpty from 'lodash.isempty';
 
-import { CartItem, GeneralResponse, IOrderDocument, IProductDocument, RetreiveOneFilters } from '../types/models';
+import { CartItem, GeneralResponse, IOrderDocument, IProductDocument, RetrieveOneFilters } from '../types/models';
 import { createError } from '../middlewares/errors';
 import { HTTP_STATUS_CODES, ORDER_STATUS } from '../types/enums';
 import { ProductModel } from '../models/product';
 import { OrderModel } from '../models/order';
 import { transformProduct } from './products';
 
-const retrieveOrder = async (filters: RetreiveOneFilters<IOrderDocument>): Promise<IOrderDocument | null> => {
+const retrieveOrder = async (filters: RetrieveOneFilters<IOrderDocument>): Promise<IOrderDocument | null> => {
   const order = (await OrderModel.findOne(filters).populate({ path: 'items.productId' }).lean().exec()) as IOrderDocument;
   if (!order || order === null) {
     return null;

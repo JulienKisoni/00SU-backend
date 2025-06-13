@@ -5,7 +5,8 @@ import { GenericError } from '../middlewares/errors';
 import { ORDER_STATUS } from './enums';
 
 export enum USER_ROLES {
-  user = 'user',
+  clerk = 'clerk',
+  manager = 'manager',
   admin = 'admin',
 }
 
@@ -17,6 +18,14 @@ interface Timestamps {
 interface ExpToken {
   tokenId: string;
   expiryAt?: number;
+}
+export interface ITeamDocument extends Timestamps {
+  _id: string;
+  name: string;
+  owner?: string | Schema.Types.ObjectId;
+  description: string;
+  userDetails?: Partial<IUserDocument>;
+  __v?: number;
 }
 export interface IUserDocument extends Timestamps {
   _id: string | Schema.Types.ObjectId;
@@ -32,6 +41,7 @@ export interface IUserDocument extends Timestamps {
     invalidToken: ExpToken;
   };
   __v?: number;
+  teamId: string;
 }
 
 export interface IStoreDocument extends Timestamps {
@@ -106,7 +116,7 @@ export interface IOrderDocument extends Timestamps {
   status: ORDER_STATUS;
 }
 
-export type RetreiveOneFilters<T> = RootFilterQuery<T>;
+export type RetrieveOneFilters<T> = RootFilterQuery<T>;
 
 export interface ITestUser {
   tokens?: API_TYPES.Tokens;

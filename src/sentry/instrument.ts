@@ -1,4 +1,4 @@
-import * as Sentry from '@sentry/node';
+/* import * as Sentry from '@sentry/node';
 import { nodeProfilingIntegration } from '@sentry/profiling-node';
 
 import { SENTRY_DNS } from '../../private/constants';
@@ -17,3 +17,4 @@ if (!TEST_ENABLED && !LOAD_TEST_ENABLED && Sentry) {
 } else {
   Logger.warn('Sentry profiling disabled');
 }
+ */

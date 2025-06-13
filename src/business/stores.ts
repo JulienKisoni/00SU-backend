@@ -6,10 +6,10 @@ import { IUserMethods, UserModel } from '../models/user';
 import { IStoreMethods, StoreModel } from '../models/store';
 import { createError, GenericError } from '../middlewares/errors';
 import { HTTP_STATUS_CODES } from '../types/enums';
-import { IStoreDocument, IUserDocument, RetreiveOneFilters } from '../types/models';
+import { IStoreDocument, IUserDocument, RetrieveOneFilters } from '../types/models';
 import { transformUser } from './users';
 
-const retrieveStore = async (filters: RetreiveOneFilters<IStoreDocument>): Promise<IStoreDocument | null> => {
+const retrieveStore = async (filters: RetrieveOneFilters<IStoreDocument>): Promise<IStoreDocument | null> => {
   const store = (await StoreModel.findOne(filters).populate({ path: 'owner' }).lean().exec()) as IStoreDocument;
   if (!store || store === null) {
     return null;

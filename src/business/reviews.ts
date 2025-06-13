@@ -1,7 +1,7 @@
 import isEmpty from 'lodash.isempty';
 import omit from 'lodash.omit';
 
-import { GeneralResponse, IProductDocument, IReviewDocument, IUserDocument, RetreiveOneFilters } from '../types/models';
+import { GeneralResponse, IProductDocument, IReviewDocument, IUserDocument, RetrieveOneFilters } from '../types/models';
 import { createError } from '../middlewares/errors';
 import { HTTP_STATUS_CODES } from '../types/enums';
 import { IProductMethods, ProductModel } from '../models/product';
@@ -9,7 +9,7 @@ import { ReviewModel } from '../models/review';
 import { transformProduct } from './products';
 import { transformUser } from './users';
 
-export const retrieveReview = async (filters: RetreiveOneFilters<IReviewDocument>): Promise<IReviewDocument | null> => {
+export const retrieveReview = async (filters: RetrieveOneFilters<IReviewDocument>): Promise<IReviewDocument | null> => {
   const review = (await ReviewModel.findOne(filters).populate({ path: 'productId' }).populate({ path: 'owner' }).lean().exec()) as IReviewDocument;
   if (!review || review === null) {
     return null;

@@ -1,14 +1,14 @@
 import isEmpty from 'lodash.isempty';
 import omit from 'lodash.omit';
 
-import { GeneralResponse, IProductDocument, IReviewDocument, RetreiveOneFilters } from '../types/models';
+import { GeneralResponse, IProductDocument, IReviewDocument, RetrieveOneFilters } from '../types/models';
 import { createError } from '../middlewares/errors';
 import { HTTP_STATUS_CODES } from '../types/enums';
 import { ProductModel } from '../models/product';
 import { StoreModel } from '../models/store';
 import { transformReview } from './reviews';
 
-const retrieveProduct = async (filters: RetreiveOneFilters<IProductDocument>): Promise<IProductDocument | null> => {
+const retrieveProduct = async (filters: RetrieveOneFilters<IProductDocument>): Promise<IProductDocument | null> => {
   const product = (await ProductModel.findOne(filters).populate({ path: 'reviews' }).lean().exec()) as IProductDocument;
   if (!product || product === null) {
     return null;

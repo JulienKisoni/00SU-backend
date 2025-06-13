@@ -35,7 +35,7 @@ export const addUserCtrl = async (req: ExtendedRequest<AddUserPayload>, res: Res
     username: Joi.string().min(6).required().messages(usernameMessages),
     email: Joi.string().email().required().messages(emailMessages),
     password: Joi.string().min(6).required().messages(passwordMessages),
-    role: Joi.string().valid(USER_ROLES.admin, USER_ROLES.user).required().messages(roleMessages),
+    role: Joi.string().valid(USER_ROLES.admin, USER_ROLES.clerk, USER_ROLES.manager).required().messages(roleMessages),
   });
   const { error, value } = schema.validate({ email, password, username, role });
   if (error) {
@@ -152,7 +152,7 @@ export const editUser = async (req: ExtendedRequest<EditUserPayload>, res: Respo
       username: Joi.string().min(6).messages(usernameMessages),
       email: Joi.string().email().messages(emailMessages),
       profile: {
-        role: Joi.string().valid(USER_ROLES.admin, USER_ROLES.user).messages(roleMessages),
+        role: Joi.string().valid(USER_ROLES.admin, USER_ROLES.clerk, USER_ROLES.manager).messages(roleMessages),
       },
     },
   });

@@ -109,6 +109,11 @@ namespace API_TYPES {
         userId: string;
       };
     };
+    teams: {
+      getOne: {
+        teamId: string;
+      };
+    };
     products: {
       add: {
         body: AddProductBody | undefined;
