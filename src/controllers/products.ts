@@ -25,7 +25,7 @@ export const addProduct = async (req: ExtendedRequest<AddProductBody>, res: Resp
   };
   const descriptionMessages: LanguageMessages = {
     'any.required': 'Please provide a store description',
-    'string.min': 'The field description must have 12 characters mininum',
+    'string.min': 'The field description must have 12 characters minimum',
     'string.max': 'The field description must have 100 characters maximum',
   };
   const activeMessages: LanguageMessages = {
@@ -185,7 +185,7 @@ export const updateOne = async (req: ExtendedRequest<UpdateProductBody>, res: Re
     'string.pattern.base': 'Please provide a valid productId',
   };
   const descriptionMessages: LanguageMessages = {
-    'string.min': 'The field description must have 12 characters mininum',
+    'string.min': 'The field description must have 12 characters minimum',
     'string.max': 'The field description must have 100 characters maximum',
   };
 

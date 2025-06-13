@@ -15,11 +15,11 @@ export const addUserCtrl = async (req: ExtendedRequest<AddUserPayload>, res: Res
 
   const usernameMessages: LanguageMessages = {
     'any.required': 'The field username is required',
-    'string.min': 'The field username must have 6 characters mininum',
+    'string.min': 'The field username must have 6 characters minimum',
   };
   const passwordMessages: LanguageMessages = {
     'any.required': 'The field password is required',
-    'string.min': 'The field password must have 6 characters mininum',
+    'string.min': 'The field password must have 6 characters minimum',
   };
   const emailMessages: LanguageMessages = {
     'any.required': 'The field email is required',
@@ -120,7 +120,7 @@ export const editUser = async (req: ExtendedRequest<EditUserPayload>, res: Respo
     'string.pattern.base': 'Please provide a valid user id',
   };
   const usernameMessages: LanguageMessages = {
-    'string.min': 'The field username must have 6 characters mininum',
+    'string.min': 'The field username must have 6 characters minimum',
   };
   const emailMessages: LanguageMessages = {
     'string.email': 'Please enter a valid email',

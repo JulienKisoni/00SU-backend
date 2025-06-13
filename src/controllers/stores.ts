@@ -40,11 +40,11 @@ export const addStore = async (req: ExtendedRequest<AddStoreBody>, res: Response
   };
   const nameMessages: LanguageMessages = {
     'any.required': 'Please provide a store name',
-    'string.min': 'The field name must have 6 characters mininum',
+    'string.min': 'The field name must have 6 characters minimum',
   };
   const descriptionMessages: LanguageMessages = {
     'any.required': 'Please provide a store description',
-    'string.min': 'The field description must have 12 characters mininum',
+    'string.min': 'The field description must have 12 characters minimum',
     'string.max': 'The field description must have 100 characters maximum',
   };
   const activeMessages: LanguageMessages = {
@@ -135,10 +135,10 @@ export const editStore = async (req: ExtendedRequest<EditStoreBody>, res: Respon
     'string.pattern.base': 'Please provide a valid store id',
   };
   const nameMessages: LanguageMessages = {
-    'string.min': 'The field name must have 6 characters mininum',
+    'string.min': 'The field name must have 6 characters minimum',
   };
   const descriptionMessages: LanguageMessages = {
-    'string.min': 'The field description must have 12 characters mininum',
+    'string.min': 'The field description must have 12 characters minimum',
     'string.max': 'The field description must have 100 characters maximum',
   };
   const session = req.currentSession;

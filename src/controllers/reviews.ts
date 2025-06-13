@@ -23,7 +23,7 @@ export const addReview = async (req: ExtendedRequest<AddReviewBody>, res: Respon
   };
   const contentMessages: LanguageMessages = {
     'any.required': 'Please provide a review content',
-    'string.min': 'The field content must have 12 characters mininum',
+    'string.min': 'The field content must have 12 characters minimum',
     'string.max': 'The field content must have 100 characters maximum',
   };
   const starsMessages: LanguageMessages = {
@@ -168,7 +168,7 @@ export const updateOne = async (req: ExtendedRequest<UpdateOneReviewBody>, res: 
     'string.pattern.base': 'Please provide a valid review id',
   };
   const contentMessages: LanguageMessages = {
-    'string.min': 'The field content must have 12 characters mininum',
+    'string.min': 'The field content must have 12 characters minimum',
     'string.max': 'The field content must have 100 characters maximum',
   };
   const starsMessages: LanguageMessages = {
