@@ -36,7 +36,7 @@ export const isOrderOwner = async (req: ExtendedRequest<undefined>, _res: Respon
   const order = await OrderModel.findOne({ _id: orderId, owner: userId }).lean().exec();
   if (!order?._id) {
     const error = createError({
-      statusCode: HTTP_STATUS_CODES.FORBIDEN,
+      statusCode: HTTP_STATUS_CODES.FORBIDDEN,
       message: `User ${userId} may not be the owner of the order (${orderId})`,
       publicMessage: 'Please make sure the order exist and you are the owner',
     });

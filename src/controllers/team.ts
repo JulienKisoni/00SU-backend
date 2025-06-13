@@ -8,7 +8,7 @@ import { HTTP_STATUS_CODES } from '../types/enums';
 import { regex } from '../helpers/constants';
 interface AddTeamPayload {
   name: string;
-  description: string;
+  description?: string;
   owner?: string;
 }
 
@@ -17,17 +17,18 @@ export const addTeamCtrl = async (req: ExtendedRequest<AddTeamPayload>, res: Res
 
   const nameMessages: LanguageMessages = {
     'any.required': 'The field name is required',
-    'string.min': 'The field name must have 6 characters minimum',
+    'string.min': 'The field name must have 3 characters minimum',
+    'string.max': 'The field name must have 100 characters maximum',
   };
   const descriptionMessages: LanguageMessages = {
-    'any.required': 'The field description is required',
     'string.min': 'The field description must have 6 characters minimum',
+    'string.max': 'The field description must have 500 characters maximum',
   };
   const session = req.currentSession;
 
   const schema = Joi.object<AddTeamPayload>({
-    name: Joi.string().min(6).required().messages(nameMessages),
-    description: Joi.string().min(6).required().messages(descriptionMessages),
+    name: Joi.string().min(3).max(100).required().messages(nameMessages),
+    description: Joi.string().min(6).max(500).messages(descriptionMessages),
     owner: Joi.string().regex(regex.mongoId),
   });
   const { error, value } = schema.validate({ name, description, owner });
@@ -44,12 +45,11 @@ export const addTeamCtrl = async (req: ExtendedRequest<AddTeamPayload>, res: Res
     res.status(HTTP_STATUS_CODES.CREATED).json({ teamId });
   }
 };
-
 export const getTeams = async (req: ExtendedRequest<undefined>, res: Response, next: NextFunction) => {
   const { user } = req;
   const session = req.currentSession;
   if (!user) {
-    const err = createError({ statusCode: HTTP_STATUS_CODES.FORBIDEN, message: 'No user associated with the request found' });
+    const err = createError({ statusCode: HTTP_STATUS_CODES.FORBIDDEN, message: 'No user associated with the request found' });
     return handleError({ error: err, next, currentSession: session });
   }
   const teams = await teamBusiness.getTeams();
@@ -93,10 +93,12 @@ export const editTeam = async (req: ExtendedRequest<EditTeamPayload>, res: Respo
     'string.pattern.base': 'Please provide a valid team id',
   };
   const nameMessages: LanguageMessages = {
-    'string.min': 'The field name must have 6 characters minimum',
+    'string.min': 'The field name must have 3 characters minimum',
+    'string.max': 'The field name must have 100 characters maximum',
   };
   const descriptionMessages: LanguageMessages = {
     'string.min': 'The field description must have 6 characters minimum',
+    'string.max': 'The field description must have 500 characters maximum',
   };
 
   const params = req.params as { teamId: string };
@@ -120,8 +122,8 @@ export const editTeam = async (req: ExtendedRequest<EditTeamPayload>, res: Respo
       teamId: Joi.string().regex(regex.mongoId).required().messages(teamIdMessages),
     },
     body: {
-      name: Joi.string().min(6).messages(nameMessages),
-      description: Joi.string().email().messages(descriptionMessages),
+      name: Joi.string().min(3).max(100).messages(nameMessages),
+      description: Joi.string().min(6).max(500).messages(descriptionMessages),
     },
   });
   const { error, value } = schema.validate(payload, { stripUnknown: true, abortEarly: true });

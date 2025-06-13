@@ -23,7 +23,7 @@ export interface ITeamDocument extends Timestamps {
   _id: string;
   name: string;
   owner?: string | Schema.Types.ObjectId;
-  description: string;
+  description?: string;
   userDetails?: Partial<IUserDocument>;
   __v?: number;
 }
@@ -81,6 +81,7 @@ export interface ExtendedRequest<B> extends Request {
   isProductOwner?: boolean;
   isReviewOwner?: boolean;
   isOrderOwner?: boolean;
+  isTeamOwner?: boolean;
   order?: IOrderDocument;
   hasAlreadyRevieweProduct?: boolean;
   storeId?: string;
@@ -124,3 +125,19 @@ export interface ITestUser {
 }
 
 export type MongoClientSession = mongo.ClientSession | undefined;
+
+interface PermissionLevel {
+  create: string;
+  read: string;
+  update: string;
+  delete: string;
+  all: string;
+}
+
+const PERMISSIONS_KEYS = ['teams', 'users', 'stores', 'products', 'cartItems', 'carts', 'orders', 'reports', 'graphics', 'histories'] as const;
+
+export type PermissionKey = (typeof PERMISSIONS_KEYS)[number];
+
+export type UserPermissions = Record<PermissionKey, PermissionLevel>;
+export type ROLES_PERMISSIONS = Record<USER_ROLES, string[]>;
+export type PERMISSION_LEVEL_KEYS = keyof PermissionLevel;

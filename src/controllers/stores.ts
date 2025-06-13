@@ -84,7 +84,7 @@ export const getStores = async (req: ExtendedRequest<undefined>, res: Response, 
   const { user } = req;
   const session = req.currentSession;
   if (!user) {
-    const err = createError({ statusCode: HTTP_STATUS_CODES.FORBIDEN, message: 'No user associated with the request found' });
+    const err = createError({ statusCode: HTTP_STATUS_CODES.FORBIDDEN, message: 'No user associated with the request found' });
     return handleError({ error: err, next, currentSession: session });
   }
   const { stores } = await storeBusiness.getStores();

@@ -44,7 +44,7 @@ export const rateLimitConfig: Partial<Options> = {
   skipSuccessfulRequests: true,
   handler: (req: ExtendedRequest<unknown>, __, next, options) => {
     const error = createError({
-      statusCode: HTTP_STATUS_CODES.FORBIDEN,
+      statusCode: HTTP_STATUS_CODES.FORBIDDEN,
       message: options.message,
       publicMessage: 'Too many requests, please try again later.',
     });

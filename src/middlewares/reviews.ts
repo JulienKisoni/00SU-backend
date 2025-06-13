@@ -48,7 +48,7 @@ export const notAlreadyReviewed = async (req: ExtendedRequest<AddReviewBody>, _r
   const review = await ReviewModel.findOne({ owner: userId, productId }).exec();
   if (review?._id) {
     const error = createError({
-      statusCode: HTTP_STATUS_CODES.FORBIDEN,
+      statusCode: HTTP_STATUS_CODES.FORBIDDEN,
       message: `User (${userId}) has already reviewed the product (${productId})`,
       publicMessage: "You're not allowed to add two reviews for the same product",
     });
@@ -87,7 +87,7 @@ export const isReviewOwner = async (req: ExtendedRequest<UpdateOneReviewBody>, _
 
   if (!review?._id) {
     const error = createError({
-      statusCode: HTTP_STATUS_CODES.FORBIDEN,
+      statusCode: HTTP_STATUS_CODES.FORBIDDEN,
       message: `User (${userId}) is not the owner of the review (${value.reviewId})`,
       publicMessage: 'Only the owner of a review is allowed to update it',
     });

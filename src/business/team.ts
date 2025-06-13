@@ -29,7 +29,7 @@ export const transformTeam = ({ team, excludedFields }: ITransformTeam): Partial
 
 interface AddTeamPayload {
   name: string;
-  description: string;
+  description?: string;
   owner?: string;
 }
 type AddTeamReturn = {

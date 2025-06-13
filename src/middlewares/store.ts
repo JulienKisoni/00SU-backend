@@ -28,7 +28,7 @@ export const isStoreOwner = async (req: ExtendedRequest<EditStoreBody>, _res: Re
   const store = await StoreModel.findOne({ _id: storeId, owner: userId }).exec();
   if (!store?._id) {
     const error = createError({
-      statusCode: HTTP_STATUS_CODES.FORBIDEN,
+      statusCode: HTTP_STATUS_CODES.FORBIDDEN,
       message: `User ${userId} is not the owner of the store (${storeId})`,
       publicMessage: 'Please make sure the store exist and you are the owner',
     });
@@ -66,7 +66,7 @@ export const getStore = async (req: ExtendedRequest<undefined>, _res: Response, 
     const store = await StoreModel.findOne({ _id: storeId }).exec();
     if (!store?._id) {
       const error = createError({
-        statusCode: HTTP_STATUS_CODES.FORBIDEN,
+        statusCode: HTTP_STATUS_CODES.FORBIDDEN,
         message: `No associated store (${storeId}) found`,
         publicMessage: 'Please make sure the store exist',
       });
@@ -78,7 +78,7 @@ export const getStore = async (req: ExtendedRequest<undefined>, _res: Response, 
     const product = await ProductModel.findById(productId).exec();
     if (!product?._id) {
       const error = createError({
-        statusCode: HTTP_STATUS_CODES.FORBIDEN,
+        statusCode: HTTP_STATUS_CODES.FORBIDDEN,
         message: `No associated product (${productId}) found`,
         publicMessage: 'Please make sure the product exist',
       });

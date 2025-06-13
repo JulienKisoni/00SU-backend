@@ -16,7 +16,9 @@ const teamSchema = new Schema<ITeamSchema>(
     name: {
       type: String,
       required: true,
-      min: 6,
+      min: 3,
+      max: 100,
+      unique: true,
     },
     owner: {
       type: Schema.Types.ObjectId,
@@ -25,8 +27,9 @@ const teamSchema = new Schema<ITeamSchema>(
     },
     description: {
       type: String,
-      required: true,
+      required: false,
       min: 6,
+      max: 500,
     },
   },
   {
@@ -42,5 +45,8 @@ const teamSchema = new Schema<ITeamSchema>(
     },
   },
 );
+
+teamSchema.index({ name: 1 });
+teamSchema.index({ owner: 1 });
 
 export const TeamModel = model<ITeamMethods, ITeamStatics>('Team', teamSchema, 'Teams');

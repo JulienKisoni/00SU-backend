@@ -52,7 +52,7 @@ export const isProductOwner = async (req: ExtendedRequest<undefined>, _res: Resp
   const product = await ProductModel.findOne({ _id: productId, storeId, owner: userId }).exec();
   if (!product?._id) {
     const error = createError({
-      statusCode: HTTP_STATUS_CODES.FORBIDEN,
+      statusCode: HTTP_STATUS_CODES.FORBIDDEN,
       message: `User ${userId} may not be the owner of the store (${storeId}) or product (${productId})`,
       publicMessage: 'Please make sure the product and store exist and you are the owner of both',
     });
@@ -105,7 +105,7 @@ export const isNotProductOwner = async (req: ExtendedRequest<AddReviewBody>, _re
   const product = await ProductModel.findOne({ _id: productId, owner: userId }).exec();
   if (product?._id) {
     const error = createError({
-      statusCode: HTTP_STATUS_CODES.FORBIDEN,
+      statusCode: HTTP_STATUS_CODES.FORBIDDEN,
       message: `User (${userId}) is the owner of the product (${productId})`,
       publicMessage: "You're not allowed to review your own product",
     });

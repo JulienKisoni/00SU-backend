@@ -2,23 +2,29 @@ import { Router } from 'express';
 import { rateLimit } from 'express-rate-limit';
 
 import * as teamCtrl from '../controllers/team';
+import * as teamMiddleware from '../middlewares/teams';
+import * as permissionMiddleware from '../middlewares/permissions';
 import { rateLimitConfig } from '../helpers/constants';
 
 const teamsRouter = Router();
 const limiter = rateLimit(rateLimitConfig);
 
 /* [GET] */
-teamsRouter.get('/', teamCtrl.getTeams);
-teamsRouter.get('/:teamId', teamCtrl.getOneTeam);
+teamsRouter.get('/', permissionMiddleware.hasPermission({ Model: 'teams', Action: 'read' }), teamCtrl.getTeams); // TODO: isSuperAdmin
+teamsRouter.get('/:teamId', permissionMiddleware.hasPermission({ Model: 'teams', Action: 'read' }), teamMiddleware.isTeamOwner, teamCtrl.getOneTeam);
 
 /* [POST] */
-teamsRouter.post('/add', limiter, teamCtrl.addTeamCtrl);
-// teamsRouter.post('/invalidateToken', limiter, userMiddleware.isAdmin, userCtrl.invalidateToken);
+teamsRouter.post('/add', limiter, permissionMiddleware.hasPermission({ Model: 'teams', Action: 'create' }), teamCtrl.addTeamCtrl);
 
 /* [PATCH] */
-teamsRouter.patch('/:team', teamCtrl.editTeam);
+teamsRouter.patch('/:team', permissionMiddleware.hasPermission({ Model: 'teams', Action: 'update' }), teamMiddleware.isTeamOwner, teamCtrl.editTeam);
 
 /* [DELETE] */
-teamsRouter.delete('/:team', teamCtrl.deleteTeam);
+teamsRouter.delete(
+  '/:team',
+  permissionMiddleware.hasPermission({ Model: 'teams', Action: 'delete' }),
+  teamMiddleware.isTeamOwner,
+  teamCtrl.deleteTeam,
+);
 
 export { teamsRouter };
