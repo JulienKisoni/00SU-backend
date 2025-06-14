@@ -17,6 +17,7 @@ export interface IUserMethods extends IUserDocument {
 export interface IUserStatics extends Model<IUserMethods> {
   findByEmail(email: string): Promise<IUserMethods | null>;
   findByRefreshToken(refreshToken: string): Promise<{ user?: IUserMethods; error?: GenericError }>;
+  searchByKey(key: 'email', value: string): Promise<{ users?: IUserMethods[]; error?: GenericError }>;
 }
 
 const userSchema = new Schema<IUserSchema>(
@@ -35,6 +36,10 @@ const userSchema = new Schema<IUserSchema>(
       type: String,
       required: true,
       min: 6,
+    },
+    teamId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Team',
     },
     storeIds: [
       {
@@ -94,6 +99,24 @@ const userSchema = new Schema<IUserSchema>(
           return { error: err };
         }
       },
+      async searchByKey(key: 'email', value: string): Promise<{ users?: IUserMethods[]; error?: GenericError }> {
+        const allowedKeys = ['email'];
+        if (!allowedKeys.includes(key)) {
+          const error = createError({
+            statusCode: HTTP_STATUS_CODES.BAD_REQUEST,
+            message: 'Invalid search key',
+            publicMessage: 'Something went wrong',
+          });
+          return { error };
+        }
+
+        const query = {
+          [key]: { $regex: value, $options: 'i' }, // case-insensitive partial match
+        };
+
+        const users = await this.find(query).exec();
+        return { users };
+      },
     },
     methods: {
       async comparePassword(plainPassword: string): Promise<{ areEqual: boolean }> {
@@ -110,5 +133,9 @@ const userSchema = new Schema<IUserSchema>(
     },
   },
 );
+
+userSchema.index({ email: 1 });
+userSchema.index({ username: 1, password: 1 });
+userSchema.index({ teamId: 1 });
 
 export const UserModel = model<IUserMethods, IUserStatics>('User', userSchema, 'Users');

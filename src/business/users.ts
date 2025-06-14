@@ -1,6 +1,6 @@
 import omit from 'lodash.omit';
 import isEmpty from 'lodash.isempty';
-import { verify } from 'jsonwebtoken';
+import { verify, sign } from 'jsonwebtoken';
 import { UpdateQuery } from 'mongoose';
 
 import { IStoreDocument, IUserDocument, RetrieveOneFilters, USER_ROLES } from '../types/models';
@@ -178,4 +178,59 @@ export const getOne = async ({ userId }: GetOneUserPayload): Promise<GetOneUserR
   }
   const transformed = transformUser({ user, excludedFields: ['password', '__v', 'private'] });
   return { user: transformed };
+};
+
+interface GetTeamUsersPayload {
+  teamId: string;
+  email?: string;
+}
+export const getTeamUsers = async ({ teamId, email }: GetTeamUsersPayload): Promise<{ users?: Partial<IUserMethods>[]; error?: GenericError }> => {
+  let users: IUserMethods[] = [];
+  if (email) {
+    const { error, users: data } = await UserModel.searchByKey('email', email);
+    if (error) {
+      return { error };
+    }
+    users = data || [];
+  } else {
+    users = await UserModel.find({ teamId }).lean().exec();
+  }
+  const transformedUsers =
+    users.map((user) => {
+      const transformed = transformUser({ user, excludedFields: ['password', '__v', 'private'] });
+      return transformed;
+    }) || [];
+  return { users: transformedUsers };
+};
+
+interface InviteUserPayload {
+  email: string;
+  role: USER_ROLES;
+}
+type InviteUserReturn = {
+  error?: GenericError;
+  link?: string;
+};
+
+export const inviteUser = async ({ email, role }: InviteUserPayload): Promise<InviteUserReturn> => {
+  const user = await UserModel.findOne({ email }).exec();
+  if (user && user._id) {
+    const error = createError({
+      statusCode: HTTP_STATUS_CODES.DUPLICATED_RESOURCE,
+      publicMessage: 'User with this email already exist',
+      message: 'Cannot invite user with existing email ',
+    });
+    return { error };
+  }
+
+  const error = createError({
+    statusCode: HTTP_STATUS_CODES.STH_WENT_WRONG,
+    message: 'Could not find INVITE_USER_SECRET env variable',
+  });
+  const signSecret = process.env.INVITE_USER_SECRET;
+  if (!signSecret) {
+    return { error };
+  }
+  const token = sign({ email, role }, signSecret, { expiresIn: '1h' }); // 1 hour expiry
+  return { error: undefined, link: token };
 };

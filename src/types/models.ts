@@ -41,7 +41,7 @@ export interface IUserDocument extends Timestamps {
     invalidToken: ExpToken;
   };
   __v?: number;
-  teamId: string;
+  teamId: string | Schema.Types.ObjectId;
 }
 
 export interface IStoreDocument extends Timestamps {

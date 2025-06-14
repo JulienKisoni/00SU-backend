@@ -108,6 +108,9 @@ namespace API_TYPES {
       getOne: {
         userId: string;
       };
+      getByTeam: {
+        teamId: string;
+      };
     };
     teams: {
       getOne: {
@@ -173,6 +176,11 @@ namespace API_TYPES {
       };
       deleteOne: {
         orderId: string;
+      };
+    };
+    users: {
+      getByTeam: {
+        email?: string;
       };
     };
   }

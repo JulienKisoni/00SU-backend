@@ -195,3 +195,73 @@ export const getOneUser = async (req: ExtendedRequest<undefined>, res: Response,
   }
   res.status(HTTP_STATUS_CODES.OK).json({ user });
 };
+
+type GetTeamUsersParams = API_TYPES.Routes['business']['users']['getByTeam'];
+type GetTeamUsersQuery = API_TYPES.Routes['params']['users']['getByTeam'];
+interface GetTeamUsersSchema {
+  params: GetTeamUsersParams;
+  query: GetTeamUsersQuery;
+}
+export const getTeamUsers = async (req: ExtendedRequest<undefined>, res: Response, next: NextFunction) => {
+  const params = req.params as unknown as GetTeamUsersParams;
+  const query = req.query as unknown as GetTeamUsersQuery;
+  const teamIdMessages: LanguageMessages = {
+    'any.required': 'Please provide a team id',
+    'string.pattern.base': 'Please provide a valid team id',
+  };
+  const schema = Joi.object<GetTeamUsersSchema>({
+    params: {
+      teamId: Joi.string().regex(regex.mongoId).required().messages(teamIdMessages),
+    },
+    query: {
+      teamId: Joi.string(),
+    },
+  });
+  const session = req.currentSession;
+
+  const { error, value } = schema.validate({ params, query }, { stripUnknown: true, abortEarly: true });
+  if (error) {
+    return handleError({ error, next, currentSession: session });
+  }
+  const users = await userBusiness.getTeamUsers({ teamId: value.params.teamId, email: value.query.email });
+  if (session) {
+    await session.endSession();
+  }
+  res.status(HTTP_STATUS_CODES.OK).json({ users: users || [] });
+};
+
+interface InviteUserPayload {
+  email: string;
+  role: USER_ROLES;
+}
+export const inviteUserCtrl = async (req: ExtendedRequest<InviteUserPayload>, res: Response, next: NextFunction) => {
+  const { email, role } = req.body || {};
+
+  const emailMessages: LanguageMessages = {
+    'any.required': 'The field email is required',
+    'string.email': 'Please enter a valid email',
+  };
+  const roleMessages: LanguageMessages = {
+    'any.required': 'The field role is required',
+    'any.only': 'Please enter a valid role',
+  };
+  const session = req.currentSession;
+
+  const schema = Joi.object<AddUserPayload>({
+    email: Joi.string().email().required().messages(emailMessages),
+    role: Joi.string().valid(USER_ROLES.clerk, USER_ROLES.manager).required().messages(roleMessages),
+  });
+  const { error, value } = schema.validate({ email, role });
+  if (error) {
+    return handleError({ error, next, currentSession: session });
+  } else if (value) {
+    const { error, link } = await userBusiness.inviteUser(value);
+    if (error && !link) {
+      return handleError({ error, next, currentSession: session });
+    }
+    if (session) {
+      await session.endSession();
+    }
+    res.status(HTTP_STATUS_CODES.CREATED).json({ link });
+  }
+};
