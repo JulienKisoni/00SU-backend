@@ -1,14 +1,14 @@
 import { Response, NextFunction } from 'express';
 import Joi, { LanguageMessages } from 'joi';
 
-import { ExtendedRequest } from '../types/models';
+import { ExtendedRequest, ParamsDictionary } from '../types/models';
 import { regex } from '../helpers/constants';
 import { createError, handleError } from '../middlewares/errors';
 import * as orderBusiness from '../business/orders';
 import { HTTP_STATUS_CODES, ORDER_STATUS } from '../types/enums';
 
 type AddOrderBody = API_TYPES.Routes['body']['orders']['add'];
-export const addOrder = async (req: ExtendedRequest<AddOrderBody>, res: Response, next: NextFunction) => {
+export const addOrder = async (req: ExtendedRequest<AddOrderBody, ParamsDictionary>, res: Response, next: NextFunction) => {
   const owner = req.user?._id.toString();
 
   const productIdMessages: LanguageMessages = {
@@ -50,13 +50,13 @@ export const addOrder = async (req: ExtendedRequest<AddOrderBody>, res: Response
   res.status(HTTP_STATUS_CODES.CREATED).json(data);
 };
 
-export const getAllOrders = async (_req: ExtendedRequest<undefined>, res: Response) => {
+export const getAllOrders = async (_req: ExtendedRequest<undefined, ParamsDictionary>, res: Response) => {
   const { data } = await orderBusiness.getAllOrders();
   res.status(HTTP_STATUS_CODES.OK).json(data);
 };
 
 type GetOneOrderParams = API_TYPES.Routes['params']['orders']['getOne'];
-export const getOneOrder = async (req: ExtendedRequest<undefined>, res: Response, next: NextFunction) => {
+export const getOneOrder = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {
   const params = req.params as unknown as GetOneOrderParams;
   const { data, error } = await orderBusiness.getOneOrder({ order: req.order, orderId: params.orderId, userId: req.user?._id.toString() });
   const session = req.currentSession;
@@ -69,7 +69,7 @@ export const getOneOrder = async (req: ExtendedRequest<undefined>, res: Response
   res.status(HTTP_STATUS_CODES.OK).json(data);
 };
 
-export const getUserOrders = async (req: ExtendedRequest<undefined>, res: Response, next: NextFunction) => {
+export const getUserOrders = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {
   const userId = req.user?._id.toString();
   const session = req.currentSession;
   if (!userId) {
@@ -88,7 +88,7 @@ export const getUserOrders = async (req: ExtendedRequest<undefined>, res: Respon
 };
 
 type DeleteOneOrderParams = API_TYPES.Routes['params']['orders']['deleteOne'];
-export const deleteOne = async (req: ExtendedRequest<undefined>, res: Response, next: NextFunction) => {
+export const deleteOne = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {
   const params = req.params as unknown as DeleteOneOrderParams;
   const { error } = await orderBusiness.deleteOne({ params, order: req.order });
   const session = req.currentSession;
@@ -103,7 +103,7 @@ export const deleteOne = async (req: ExtendedRequest<undefined>, res: Response, 
 
 type UpdateOneOrderBody = API_TYPES.Routes['body']['orders']['updateOne'];
 type UpdateOneOrderParams = API_TYPES.Routes['params']['orders']['getOne'];
-export const updateOne = async (req: ExtendedRequest<UpdateOneOrderBody>, res: Response, next: NextFunction) => {
+export const updateOne = async (req: ExtendedRequest<UpdateOneOrderBody, ParamsDictionary>, res: Response, next: NextFunction) => {
   const params = req.params as unknown as UpdateOneOrderParams;
   const productIdMessages: LanguageMessages = {
     'any.required': 'Please a productId is required for each item inside your order',

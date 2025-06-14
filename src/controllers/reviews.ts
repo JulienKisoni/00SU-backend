@@ -1,7 +1,7 @@
 import { NextFunction, Response } from 'express';
 import Joi, { LanguageMessages } from 'joi';
 
-import { ExtendedRequest } from '../types/models';
+import { ExtendedRequest, ParamsDictionary } from '../types/models';
 import { regex } from '../helpers/constants';
 import { handleError } from '../middlewares/errors';
 import * as reviewBusiness from '../business/reviews';
@@ -9,7 +9,7 @@ import { HTTP_STATUS_CODES } from '../types/enums';
 
 type AddReviewBody = API_TYPES.Routes['body']['reviews']['add'];
 type AddReviewPayload = AddReviewBody | undefined;
-export const addReview = async (req: ExtendedRequest<AddReviewBody>, res: Response, next: NextFunction) => {
+export const addReview = async (req: ExtendedRequest<AddReviewBody, ParamsDictionary>, res: Response, next: NextFunction) => {
   const ownerMessages: LanguageMessages = {
     'any.required': "Could not retreive your user's information",
     'string.pattern.base': 'Please provide a valid owner id',
@@ -61,7 +61,7 @@ export const addReview = async (req: ExtendedRequest<AddReviewBody>, res: Respon
   res.status(HTTP_STATUS_CODES.CREATED).json(data);
 };
 
-export const getAllReviews = async (req: ExtendedRequest<undefined>, res: Response, next: NextFunction) => {
+export const getAllReviews = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {
   const { error, data } = await reviewBusiness.getAllReviews();
   const session = req.currentSession;
   if (error) {
@@ -75,7 +75,7 @@ export const getAllReviews = async (req: ExtendedRequest<undefined>, res: Respon
 };
 
 type GetOneReviewParams = API_TYPES.Routes['params']['reviews']['getOne'];
-export const getOneReview = async (req: ExtendedRequest<undefined>, res: Response, next: NextFunction) => {
+export const getOneReview = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {
   const params = req.params as unknown as GetOneReviewParams;
 
   const reviewIdMessages: LanguageMessages = {
@@ -110,7 +110,7 @@ type DeleteOneReviewBody = API_TYPES.Routes['body']['reviews']['deleteOne'];
 interface DeleteOneReviewPayload {
   body: DeleteOneReviewBody;
 }
-export const deleteOne = async (req: ExtendedRequest<undefined>, res: Response, next: NextFunction) => {
+export const deleteOne = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {
   const params = req.params as unknown as DeleteOneReviewParams;
 
   const reviewIdMessages: LanguageMessages = {
@@ -160,7 +160,7 @@ interface UpdateOneReviewPayload {
   body?: UpdateOneReviewBody;
   params: UpdateOneReviewParams;
 }
-export const updateOne = async (req: ExtendedRequest<UpdateOneReviewBody>, res: Response, next: NextFunction) => {
+export const updateOne = async (req: ExtendedRequest<UpdateOneReviewBody, ParamsDictionary>, res: Response, next: NextFunction) => {
   const params = req.params as unknown as UpdateOneReviewParams;
 
   const reviewIdMessages: LanguageMessages = {
@@ -211,7 +211,7 @@ export const updateOne = async (req: ExtendedRequest<UpdateOneReviewBody>, res: 
 };
 
 type GetProductReviewsParams = API_TYPES.Routes['params']['products']['getReviews'];
-export const getProductReviews = async (req: ExtendedRequest<undefined>, res: Response, next: NextFunction) => {
+export const getProductReviews = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {
   const productIdMessages: LanguageMessages = {
     'any.required': 'Please provide a review id',
     'string.pattern.base': 'Please provide a valid review id',

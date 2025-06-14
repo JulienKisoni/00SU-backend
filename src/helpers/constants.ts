@@ -3,7 +3,7 @@ import { type Options } from 'express-rate-limit';
 import { handleError } from '../middlewares/errors';
 import { createError } from '../middlewares/errors';
 import { HTTP_STATUS_CODES } from '../types/enums';
-import { ExtendedRequest } from '../types/models';
+import { ExtendedRequest, ParamsDictionary } from '../types/models';
 
 export const nonSecureRoutes: { path: string; method: string }[] = [
   {
@@ -42,7 +42,7 @@ export const rateLimitConfig: Partial<Options> = {
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   skipSuccessfulRequests: true,
-  handler: (req: ExtendedRequest<unknown>, __, next, options) => {
+  handler: (req: ExtendedRequest<unknown, ParamsDictionary>, __, next, options) => {
     const error = createError({
       statusCode: HTTP_STATUS_CODES.FORBIDDEN,
       message: options.message,

@@ -3,13 +3,13 @@ import Joi, { LanguageMessages } from 'joi';
 
 import { regex } from '../helpers/constants';
 import { HTTP_STATUS_CODES } from '../types/enums';
-import { ExtendedRequest } from '../types/models';
+import { ExtendedRequest, ParamsDictionary } from '../types/models';
 import { handleError, createError } from './errors';
 import { ReviewModel } from '../models/review';
 
 type AddReviewBody = API_TYPES.Routes['body']['reviews']['add'];
 type AddReviewPayload = AddReviewBody | undefined;
-export const notAlreadyReviewed = async (req: ExtendedRequest<AddReviewBody>, _res: Response, next: NextFunction) => {
+export const notAlreadyReviewed = async (req: ExtendedRequest<AddReviewBody, ParamsDictionary>, _res: Response, next: NextFunction) => {
   const ownerMessages: LanguageMessages = {
     'any.required': "Could not retreive your user's information",
     'string.pattern.base': 'Please provide a valid owner id',
@@ -62,7 +62,7 @@ export const notAlreadyReviewed = async (req: ExtendedRequest<AddReviewBody>, _r
 
 type UpdateOneReviewBody = API_TYPES.Routes['body']['reviews']['updateOne'];
 type UpdateOneReviewParams = API_TYPES.Routes['params']['reviews']['updateOne'];
-export const isReviewOwner = async (req: ExtendedRequest<UpdateOneReviewBody>, _res: Response, next: NextFunction) => {
+export const isReviewOwner = async (req: ExtendedRequest<UpdateOneReviewBody, ParamsDictionary>, _res: Response, next: NextFunction) => {
   const params = req.params as unknown as UpdateOneReviewParams;
 
   const reviewIdMessages: LanguageMessages = {

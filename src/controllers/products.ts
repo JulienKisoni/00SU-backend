@@ -1,7 +1,7 @@
 import { Response, NextFunction, Request } from 'express';
 import Joi, { LanguageMessages } from 'joi';
 
-import { ExtendedRequest } from '../types/models';
+import { ExtendedRequest, ParamsDictionary } from '../types/models';
 import { regex } from '../helpers/constants';
 import { createError, handleError } from '../middlewares/errors';
 import * as productBusiness from '../business/products';
@@ -13,7 +13,7 @@ interface AddProductSchema {
   params: AddProductParams;
   body: AddProductBody | undefined;
 }
-export const addProduct = async (req: ExtendedRequest<AddProductBody>, res: Response, next: NextFunction) => {
+export const addProduct = async (req: ExtendedRequest<AddProductBody, ParamsDictionary>, res: Response, next: NextFunction) => {
   const params = req.params as unknown as AddProductParams;
 
   const storeIdMessages: LanguageMessages = {
@@ -84,7 +84,7 @@ export const getAllProducts = async (_req: Request, res: Response) => {
 };
 
 type GetStoreProductsPayload = API_TYPES.Routes['business']['products']['getByStoreId'];
-export const getStoreProducts = async (req: ExtendedRequest<undefined>, res: Response, next: NextFunction) => {
+export const getStoreProducts = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {
   const { storeId } = req;
   const session = req.currentSession;
   if (!storeId) {
@@ -117,7 +117,7 @@ export const getStoreProducts = async (req: ExtendedRequest<undefined>, res: Res
   res.status(HTTP_STATUS_CODES.OK).json({ products });
 };
 
-export const deleteOne = async (req: ExtendedRequest<undefined>, res: Response, next: NextFunction) => {
+export const deleteOne = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {
   const { storeId, productId } = req;
   const session = req.currentSession;
   if (!storeId || !productId) {
@@ -143,7 +143,7 @@ type GetOneProductParams = API_TYPES.Routes['params']['products']['getOne'];
 interface GetOneProductPayload {
   params: GetOneProductParams;
 }
-export const getOne = async (req: ExtendedRequest<undefined>, res: Response, next: NextFunction) => {
+export const getOne = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {
   const params = req.params as unknown as GetOneProductParams;
 
   const productIdMessages: LanguageMessages = {
@@ -179,7 +179,7 @@ interface UpdateProductSchema {
   params: UpdateProductParams;
   body: UpdateProductBody | undefined;
 }
-export const updateOne = async (req: ExtendedRequest<UpdateProductBody>, res: Response, next: NextFunction) => {
+export const updateOne = async (req: ExtendedRequest<UpdateProductBody, ParamsDictionary>, res: Response, next: NextFunction) => {
   const productIdMessages: LanguageMessages = {
     'any.required': 'Please provide a productId',
     'string.pattern.base': 'Please provide a valid productId',

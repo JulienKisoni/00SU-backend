@@ -1,11 +1,11 @@
 import { NextFunction, Response } from 'express';
 
-import { ExtendedRequest } from '../types/models';
+import { ExtendedRequest, ParamsDictionary } from '../types/models';
 import { createError } from './errors';
 import { HTTP_STATUS_CODES } from '../types/enums';
 import { TeamModel } from '../models/team';
 
-export const isTeamOwner = async (req: ExtendedRequest<unknown>, _res: Response, next: NextFunction) => {
+export const isTeamOwner = async (req: ExtendedRequest<unknown, ParamsDictionary>, _res: Response, next: NextFunction) => {
   const { user } = req;
   const team = await TeamModel.findOne({ _id: user?.teamId, owner: user?._id }).exec();
   if (team?.id) {

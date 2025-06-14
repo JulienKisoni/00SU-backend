@@ -2,7 +2,7 @@ import { NextFunction, Response } from 'express';
 import Joi, { LanguageMessages } from 'joi';
 
 import { regex } from '../helpers/constants';
-import { ExtendedRequest, IStoreDocument } from '../types/models';
+import { ExtendedRequest, IStoreDocument, ParamsDictionary } from '../types/models';
 import { createError, handleError } from '../middlewares/errors';
 import { HTTP_STATUS_CODES } from '../types/enums';
 import * as storeBusiness from '../business/stores';
@@ -14,7 +14,7 @@ interface AddStoreJoiSchema {
   };
   body: AddStoreBody;
 }
-export const addStore = async (req: ExtendedRequest<AddStoreBody>, res: Response, next: NextFunction) => {
+export const addStore = async (req: ExtendedRequest<AddStoreBody, ParamsDictionary>, res: Response, next: NextFunction) => {
   const userId = req.user?._id.toString();
   const session = req.currentSession;
   const body = req.body;
@@ -80,7 +80,7 @@ export const addStore = async (req: ExtendedRequest<AddStoreBody>, res: Response
   res.status(HTTP_STATUS_CODES.CREATED).json({ storeId });
 };
 
-export const getStores = async (req: ExtendedRequest<undefined>, res: Response, next: NextFunction) => {
+export const getStores = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {
   const { user } = req;
   const session = req.currentSession;
   if (!user) {
@@ -97,7 +97,7 @@ export const getStores = async (req: ExtendedRequest<undefined>, res: Response, 
 interface DeleteStoreSchema {
   storeId: string;
 }
-export const deleteStore = async (req: ExtendedRequest<undefined>, res: Response, next: NextFunction) => {
+export const deleteStore = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {
   const params = req.params as unknown as DeleteStoreSchema;
   const session = req.currentSession;
   const storeIdMessages: LanguageMessages = {
@@ -129,7 +129,7 @@ interface EditStoreSchema {
   params: EditStoreParams;
   body: EditStoreBody;
 }
-export const editStore = async (req: ExtendedRequest<EditStoreBody>, res: Response, next: NextFunction) => {
+export const editStore = async (req: ExtendedRequest<EditStoreBody, ParamsDictionary>, res: Response, next: NextFunction) => {
   const params = req.params as unknown as EditStoreParams;
   const storeIdMessages: LanguageMessages = {
     'string.pattern.base': 'Please provide a valid store id',
@@ -171,7 +171,7 @@ export const editStore = async (req: ExtendedRequest<EditStoreBody>, res: Respon
 };
 
 type GetOneStorePayload = API_TYPES.Routes['business']['stores']['getOne'];
-export const getOneStore = async (req: ExtendedRequest<undefined>, res: Response, next: NextFunction) => {
+export const getOneStore = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {
   const params = req.params as unknown as GetOneStorePayload;
   const storeIdMessages: LanguageMessages = {
     'any.required': 'Please provide a store id',

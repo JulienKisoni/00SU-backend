@@ -2,7 +2,7 @@ import { NextFunction, Response } from 'express';
 import Joi, { LanguageMessages } from 'joi';
 
 import { HTTP_STATUS_CODES } from '../types/enums';
-import { ExtendedRequest, IProductDocument } from '../types/models';
+import { ExtendedRequest, IProductDocument, ParamsDictionary } from '../types/models';
 import { createError, handleError } from './errors';
 import { regex } from '../helpers/constants';
 import { ProductModel } from '../models/product';
@@ -12,7 +12,7 @@ type DeleteProductParams = API_TYPES.Routes['params']['products']['deleteOne'];
 interface DeleteProductSchema {
   params: DeleteProductParams;
 }
-export const isProductOwner = async (req: ExtendedRequest<undefined>, _res: Response, next: NextFunction) => {
+export const isProductOwner = async (req: ExtendedRequest<undefined, ParamsDictionary>, _res: Response, next: NextFunction) => {
   const params = req.params as unknown as DeleteProductParams;
   const userId = req.user?._id;
   const storeIdMessages: LanguageMessages = {
@@ -66,7 +66,7 @@ export const isProductOwner = async (req: ExtendedRequest<undefined>, _res: Resp
 
 type AddReviewBody = API_TYPES.Routes['body']['reviews']['add'];
 type AddReviewPayload = AddReviewBody | undefined;
-export const isNotProductOwner = async (req: ExtendedRequest<AddReviewBody>, _res: Response, next: NextFunction) => {
+export const isNotProductOwner = async (req: ExtendedRequest<AddReviewBody, ParamsDictionary>, _res: Response, next: NextFunction) => {
   const ownerMessages: LanguageMessages = {
     'any.required': "Could not retreive your user's information",
     'string.pattern.base': 'Please provide a valid owner id',
@@ -121,7 +121,7 @@ interface IGetProdMiddleware {
   reviewId?: string;
   productId?: string;
 }
-export const getProduct = async (req: ExtendedRequest<undefined>, _res: Response, next: NextFunction) => {
+export const getProduct = async (req: ExtendedRequest<undefined, ParamsDictionary>, _res: Response, next: NextFunction) => {
   const params = req.params as unknown as IGetProdMiddleware;
 
   const reviewIdMessages: LanguageMessages = {

@@ -1,7 +1,7 @@
 import { NextFunction, Response } from 'express';
 import Joi, { LanguageMessages } from 'joi';
 
-import { ExtendedRequest } from '../types/models';
+import { ExtendedRequest, ParamsDictionary } from '../types/models';
 import { createError, handleError } from './errors';
 import { HTTP_STATUS_CODES } from '../types/enums';
 import { StoreModel } from '../models/store';
@@ -13,7 +13,7 @@ type EditStoreBody = API_TYPES.Routes['business']['stores']['editStore'];
 type EditStoreParams = {
   storeId: string;
 };
-export const isStoreOwner = async (req: ExtendedRequest<EditStoreBody>, _res: Response, next: NextFunction) => {
+export const isStoreOwner = async (req: ExtendedRequest<EditStoreBody, ParamsDictionary>, _res: Response, next: NextFunction) => {
   const params = req.params as unknown as EditStoreParams;
   const userId = req.user?._id;
   const { storeId } = params;
@@ -42,7 +42,7 @@ interface IGetStoreParams {
   storeId?: string;
   productId?: string;
 }
-export const getStore = async (req: ExtendedRequest<undefined>, _res: Response, next: NextFunction) => {
+export const getStore = async (req: ExtendedRequest<undefined, ParamsDictionary>, _res: Response, next: NextFunction) => {
   const params = req.params as unknown as IGetStoreParams;
   const storeIdMessages: LanguageMessages = {
     'string.pattern.base': 'Please provide a valid storeId',

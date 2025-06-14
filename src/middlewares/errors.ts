@@ -4,7 +4,7 @@ import Joi from 'joi';
 import * as Sentry from '@sentry/node';
 
 import { HTTP_STATUS_CODES } from '../types/enums';
-import { ExtendedRequest } from '../types/models';
+import { ExtendedRequest, ParamsDictionary } from '../types/models';
 import Logger from '../utils/logger';
 
 interface ErrorArgs {
@@ -25,7 +25,7 @@ export class GenericError extends Error {
   }
 }
 
-export const errorHandler = async (error: GenericError, req: ExtendedRequest<unknown>, res: Response) => {
+export const errorHandler = async (error: GenericError, req: ExtendedRequest<unknown, ParamsDictionary>, res: Response) => {
   const { statusCode = HTTP_STATUS_CODES.STH_WENT_WRONG, message, publicMessage = 'Something went wrong', stack } = error;
   const exception = `Public message | ${publicMessage} | Stack: ${stack || message}`;
   Logger.error(exception);
@@ -38,7 +38,7 @@ export const errorHandler = async (error: GenericError, req: ExtendedRequest<unk
     const user: Sentry.User = {
       id: req.user?._id.toString(),
       email: req.user?.email,
-      username: req.user?.username,
+      username: req.user?.profile?.username,
     };
     scope.setUser(user);
     Sentry.captureException(exception);
