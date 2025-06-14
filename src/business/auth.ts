@@ -3,10 +3,10 @@ import { createError, GenericError } from '../middlewares/errors';
 import { UserModel } from '../models/user';
 import { generateToken } from '../utils/tokens';
 
-type LoginPaylod = API_TYPES.Routes['body']['login'];
+type LoginPayload = API_TYPES.Routes['body']['login'];
 type LoginResponse = API_TYPES.Routes['business']['auth']['login'];
 
-export const login = async ({ email, password }: LoginPaylod): Promise<LoginResponse> => {
+export const login = async ({ email, password }: LoginPayload): Promise<LoginResponse> => {
   const user = await UserModel.findByEmail(email);
   if (!user) {
     const error = createError({
@@ -47,4 +47,17 @@ export const refreshToken = async ({ refreshToken }: { refreshToken: string }): 
     accessToken = tokens?.accessToken;
   }
   return { accessToken };
+};
+
+export const recoverPassword = async ({ email }: { email: string }): Promise<{ email?: string; error?: GenericError }> => {
+  const user = await UserModel.findByEmail(email);
+  if (!user) {
+    const error = createError({
+      statusCode: HTTP_STATUS_CODES.BAD_REQUEST,
+      message: `Email (${email}) not exist`,
+      publicMessage: 'No user found',
+    });
+    return { error };
+  }
+  return { email };
 };

@@ -53,10 +53,10 @@ export const notAlreadyReviewed = async (req: ExtendedRequest<AddReviewBody>, _r
       publicMessage: "You're not allowed to add two reviews for the same product",
     });
 
-    req.hasAlreadyRevieweProduct = true;
+    req.hasAlreadyReviewedProduct = true;
     return handleError({ error, next, currentSession: session });
   }
-  req.hasAlreadyRevieweProduct = false;
+  req.hasAlreadyReviewedProduct = false;
   return next();
 };
 

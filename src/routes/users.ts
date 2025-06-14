@@ -12,9 +12,9 @@ const usersRouter = Router();
 const limiter = rateLimit(rateLimitConfig);
 
 /* [GET] */
-usersRouter.get('/', userCtrl.getUsers);
-usersRouter.get('/:userId', userCtrl.getOneUser);
-usersRouter.get('/me/orders', orderCtrl.getUserOrders);
+usersRouter.get('/', permissionMiddleware.hasPermission({ Model: 'users', Action: 'read' }), userCtrl.getUsers);
+usersRouter.get('/:userId', permissionMiddleware.hasPermission({ Model: 'users', Action: 'read' }), userCtrl.getOneUser);
+usersRouter.get('/me/orders', permissionMiddleware.hasPermission({ Model: 'orders', Action: 'read' }), orderCtrl.getUserOrders);
 usersRouter.get(
   '/:teamId/users',
   permissionMiddleware.hasPermission({ Model: 'users', Action: 'read' }),
@@ -33,9 +33,9 @@ usersRouter.post(
 );
 
 /* [PATCH] */
-usersRouter.patch('/:userId', userCtrl.editUser);
+usersRouter.patch('/:userId', permissionMiddleware.hasPermission({ Model: 'users', Action: 'update' }), userCtrl.editUser);
 
 /* [DELETE] */
-usersRouter.delete('/:userId', userCtrl.deleteUser);
+usersRouter.delete('/:userId', permissionMiddleware.hasPermission({ Model: 'users', Action: 'delete' }), userCtrl.deleteUser);
 
 export { usersRouter };

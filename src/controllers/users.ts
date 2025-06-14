@@ -1,43 +1,47 @@
 import { NextFunction, Response } from 'express';
 import Joi, { type LanguageMessages } from 'joi';
 
-import { ExtendedRequest, IUserDocument, USER_ROLES } from '../types/models';
+import { ExtendedRequest, IUserDocument, ParamsDictionary, USER_ROLES } from '../types/models';
 import * as userBusiness from '../business/users';
 import { createError, handleError } from '../middlewares/errors';
 import { HTTP_STATUS_CODES } from '../types/enums';
 import { regex } from '../helpers/constants';
-interface AddUserPayload extends Omit<IUserDocument, '_id' | 'storeId' | 'createdAt' | 'updatedAt'> {
-  role: USER_ROLES;
-}
+type AddUserPayload = Omit<IUserDocument, '_id' | 'storeId' | 'createdAt' | 'updatedAt'>;
 
-export const addUserCtrl = async (req: ExtendedRequest<AddUserPayload>, res: Response, next: NextFunction) => {
-  const { email, password, username, role } = req.body || {};
+export const addUserCtrl = async (req: ExtendedRequest<AddUserPayload, ParamsDictionary>, res: Response, next: NextFunction) => {
+  const { email, password, profile } = req.body || {};
 
   const usernameMessages: LanguageMessages = {
-    'any.required': 'The field username is required',
     'string.min': 'The field username must have 6 characters minimum',
+    'string.max': 'The field username must have 60 characters maximum',
   };
   const passwordMessages: LanguageMessages = {
     'any.required': 'The field password is required',
     'string.min': 'The field password must have 6 characters minimum',
+    'string.max': 'The field password must have 128 characters maximum',
   };
   const emailMessages: LanguageMessages = {
     'any.required': 'The field email is required',
     'string.email': 'Please enter a valid email',
+    'string.max': 'The field email must have 320 characters maximum',
   };
   const roleMessages: LanguageMessages = {
     'any.required': 'The field role is required',
     'any.only': 'Please enter a valid role',
+    'string.min': 'The field role must have 5 characters minimum',
+    'string.max': 'The field role must have 13 characters maximum',
   };
   const session = req.currentSession;
 
   const schema = Joi.object<AddUserPayload>({
-    username: Joi.string().min(6).required().messages(usernameMessages),
-    email: Joi.string().email().required().messages(emailMessages),
-    password: Joi.string().min(6).required().messages(passwordMessages),
-    role: Joi.string().valid(USER_ROLES.admin, USER_ROLES.clerk, USER_ROLES.manager).required().messages(roleMessages),
+    email: Joi.string().min(3).max(320).email().required().messages(emailMessages),
+    password: Joi.string().min(6).max(128).required().messages(passwordMessages),
+    profile: {
+      username: Joi.string().min(6).max(60).messages(usernameMessages),
+      role: Joi.string().min(5).max(13).valid(USER_ROLES.admin, USER_ROLES.clerk, USER_ROLES.manager).required().messages(roleMessages),
+    },
   });
-  const { error, value } = schema.validate({ email, password, username, role });
+  const { error, value } = schema.validate({ email, password, profile });
   if (error) {
     return handleError({ error, next, currentSession: session });
   } else if (value) {
@@ -52,7 +56,7 @@ export const addUserCtrl = async (req: ExtendedRequest<AddUserPayload>, res: Res
   }
 };
 
-export const getUsers = async (req: ExtendedRequest<undefined>, res: Response, next: NextFunction) => {
+export const getUsers = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {
   const { user } = req;
   const session = req.currentSession;
   if (!user) {
@@ -66,7 +70,7 @@ export const getUsers = async (req: ExtendedRequest<undefined>, res: Response, n
   res.status(HTTP_STATUS_CODES.OK).json({ users });
 };
 
-export const invalidateToken = async (req: ExtendedRequest<{ userId: string }>, res: Response, next: NextFunction) => {
+export const invalidateToken = async (req: ExtendedRequest<{ userId: string }, ParamsDictionary>, res: Response, next: NextFunction) => {
   const messages: LanguageMessages = {
     'any.required': 'Please provide a user id',
     'string.pattern.base': 'Please provide a valid user id',
@@ -86,7 +90,7 @@ export const invalidateToken = async (req: ExtendedRequest<{ userId: string }>, 
   res.status(HTTP_STATUS_CODES.OK).json({});
 };
 
-export const deleteUser = async (req: ExtendedRequest<undefined>, res: Response, next: NextFunction) => {
+export const deleteUser = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {
   const messages: LanguageMessages = {
     'any.required': 'Please provide a user id',
     'string.pattern.base': 'Please provide a valid user id',
@@ -106,14 +110,14 @@ export const deleteUser = async (req: ExtendedRequest<undefined>, res: Response,
   res.status(HTTP_STATUS_CODES.OK).json({});
 };
 
-type EditUserPayload = Pick<IUserDocument, 'email' | 'username' | 'profile'>;
+type EditUserPayload = Pick<IUserDocument, 'email' | 'profile'>;
 interface JoiSchema {
   params: {
     userId: string;
   };
   body: EditUserPayload;
 }
-export const editUser = async (req: ExtendedRequest<EditUserPayload>, res: Response, next: NextFunction) => {
+export const editUser = async (req: ExtendedRequest<EditUserPayload, ParamsDictionary>, res: Response, next: NextFunction) => {
   const body = req.body;
   const userIdMessages: LanguageMessages = {
     'any.required': 'Please provide a user id',
@@ -121,12 +125,16 @@ export const editUser = async (req: ExtendedRequest<EditUserPayload>, res: Respo
   };
   const usernameMessages: LanguageMessages = {
     'string.min': 'The field username must have 6 characters minimum',
+    'string.max': 'The field username must have 60 characters maximum',
   };
   const emailMessages: LanguageMessages = {
     'string.email': 'Please enter a valid email',
+    'string.max': 'The field email must have 320 characters maximum',
   };
   const roleMessages: LanguageMessages = {
     'any.only': 'Please enter a valid role',
+    'string.min': 'The field role must have 5 characters minimum',
+    'string.max': 'The field role must have 13 characters maximum',
   };
   const params = req.params as { userId: string };
   const session = req.currentSession;
@@ -149,10 +157,10 @@ export const editUser = async (req: ExtendedRequest<EditUserPayload>, res: Respo
       userId: Joi.string().regex(regex.mongoId).required().messages(userIdMessages),
     },
     body: {
-      username: Joi.string().min(6).messages(usernameMessages),
-      email: Joi.string().email().messages(emailMessages),
+      email: Joi.string().min(5).max(320).email().messages(emailMessages),
       profile: {
-        role: Joi.string().valid(USER_ROLES.admin, USER_ROLES.clerk, USER_ROLES.manager).messages(roleMessages),
+        username: Joi.string().min(6).max(60).messages(usernameMessages),
+        role: Joi.string().min(5).max(13).valid(USER_ROLES.admin, USER_ROLES.clerk, USER_ROLES.manager).messages(roleMessages),
       },
     },
   });
@@ -171,7 +179,7 @@ export const editUser = async (req: ExtendedRequest<EditUserPayload>, res: Respo
 };
 
 type GetOneUserPayload = API_TYPES.Routes['business']['users']['getOne'];
-export const getOneUser = async (req: ExtendedRequest<undefined>, res: Response, next: NextFunction) => {
+export const getOneUser = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {
   const params = req.params as unknown as GetOneUserPayload;
   const userIdMessages: LanguageMessages = {
     'any.required': 'Please provide a user id',
@@ -202,7 +210,7 @@ interface GetTeamUsersSchema {
   params: GetTeamUsersParams;
   query: GetTeamUsersQuery;
 }
-export const getTeamUsers = async (req: ExtendedRequest<undefined>, res: Response, next: NextFunction) => {
+export const getTeamUsers = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {
   const params = req.params as unknown as GetTeamUsersParams;
   const query = req.query as unknown as GetTeamUsersQuery;
   const teamIdMessages: LanguageMessages = {
@@ -214,7 +222,7 @@ export const getTeamUsers = async (req: ExtendedRequest<undefined>, res: Respons
       teamId: Joi.string().regex(regex.mongoId).required().messages(teamIdMessages),
     },
     query: {
-      teamId: Joi.string(),
+      email: Joi.string(),
     },
   });
   const session = req.currentSession;
@@ -234,20 +242,23 @@ interface InviteUserPayload {
   email: string;
   role: USER_ROLES;
 }
-export const inviteUserCtrl = async (req: ExtendedRequest<InviteUserPayload>, res: Response, next: NextFunction) => {
+export const inviteUserCtrl = async (req: ExtendedRequest<InviteUserPayload, ParamsDictionary>, res: Response, next: NextFunction) => {
   const { email, role } = req.body || {};
 
   const emailMessages: LanguageMessages = {
     'any.required': 'The field email is required',
     'string.email': 'Please enter a valid email',
+    'string.max': 'The field email must have 320 characters maximum',
   };
   const roleMessages: LanguageMessages = {
     'any.required': 'The field role is required',
     'any.only': 'Please enter a valid role',
+    'string.min': 'The field role must have 5 characters minimum',
+    'string.max': 'The field role must have 13 characters maximum',
   };
   const session = req.currentSession;
 
-  const schema = Joi.object<AddUserPayload>({
+  const schema = Joi.object<{ email: string; role: USER_ROLES }>({
     email: Joi.string().email().required().messages(emailMessages),
     role: Joi.string().valid(USER_ROLES.clerk, USER_ROLES.manager).required().messages(roleMessages),
   });

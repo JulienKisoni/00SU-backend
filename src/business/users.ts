@@ -3,7 +3,7 @@ import isEmpty from 'lodash.isempty';
 import { verify, sign } from 'jsonwebtoken';
 import { UpdateQuery } from 'mongoose';
 
-import { IStoreDocument, IUserDocument, RetrieveOneFilters, USER_ROLES } from '../types/models';
+import { IStoreDocument, IUserDocument, IUserProfile, RetrieveOneFilters, USER_ROLES } from '../types/models';
 import { IUserMethods, UserModel } from '../models/user';
 import { createError, GenericError } from '../middlewares/errors';
 import { encrypt } from '../utils/hash';
@@ -33,17 +33,16 @@ export const transformUser = ({ user, excludedFields }: ITransformProduct): Part
 };
 
 interface AddUserPayload {
-  username: string;
   email: string;
   password: string;
-  role: USER_ROLES;
+  profile: IUserProfile;
 }
 type AddUserReturn = {
   error?: GenericError;
   userId?: string;
 };
 
-export const addUser = async ({ username, email, password, role }: AddUserPayload): Promise<AddUserReturn> => {
+export const addUser = async ({ email, password, profile }: AddUserPayload): Promise<AddUserReturn> => {
   const user = await UserModel.findOne({ email }).exec();
   if (user && user._id) {
     const error = createError({
@@ -59,11 +58,8 @@ export const addUser = async ({ username, email, password, role }: AddUserPayloa
   }
   const payload = {
     email,
-    username,
     password: encryptedText,
-    profile: {
-      role,
-    },
+    profile,
   };
   const result = await UserModel.create(payload);
   const userId = result._id;
@@ -127,14 +123,14 @@ export const deleteOne = async ({ userId }: { userId: string }) => {
   return UserModel.deleteOne({ _id: userId }).exec();
 };
 
-type EditUserPayload = Pick<IUserDocument, 'email' | 'username' | 'profile'>;
+type EditUserPayload = Pick<IUserDocument, 'email' | 'profile'>;
 interface EditUserParams {
   payload: Partial<EditUserPayload>;
   userId: string;
 }
 export const updateOne = async ({ payload, userId }: EditUserParams): Promise<{ error?: GenericError }> => {
   const update: UpdateQuery<EditUserPayload> = {};
-  const { email, profile, username } = payload;
+  const { email, profile } = payload;
   if (!payload || isEmpty(payload)) {
     const error = createError({
       statusCode: HTTP_STATUS_CODES.BAD_REQUEST,
@@ -146,8 +142,11 @@ export const updateOne = async ({ payload, userId }: EditUserParams): Promise<{ 
   if (email) {
     update['email'] = email;
   }
-  if (username) {
-    update['username'] = username;
+  if (profile?.username) {
+    update['profile.username'] = profile?.username;
+  }
+  if (profile?.picture) {
+    update['profile.picture'] = profile?.picture;
   }
   if (profile?.role) {
     update['profile.role'] = profile.role;

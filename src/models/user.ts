@@ -22,20 +22,18 @@ export interface IUserStatics extends Model<IUserMethods> {
 
 const userSchema = new Schema<IUserSchema>(
   {
-    username: {
-      type: String,
-      required: true,
-      min: 6,
-    },
     email: {
       type: String,
       required: true,
       unique: true,
+      max: 320,
+      min: 5,
     },
     password: {
       type: String,
       required: true,
       min: 6,
+      max: 128,
     },
     teamId: {
       type: Schema.Types.ObjectId,
@@ -51,6 +49,20 @@ const userSchema = new Schema<IUserSchema>(
       role: {
         type: String,
         require: true,
+        min: 5,
+        max: 13,
+      },
+      username: {
+        type: String,
+        required: false,
+        min: 6,
+        max: 60,
+      },
+      picture: {
+        type: String,
+        required: false,
+        min: 150,
+        max: 2000,
       },
     },
     private: {

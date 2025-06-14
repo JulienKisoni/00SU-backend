@@ -1,5 +1,5 @@
 import { RootFilterQuery, Schema, mongo } from 'mongoose';
-import { Request } from 'express';
+import type { Request } from 'express';
 
 import { GenericError } from '../middlewares/errors';
 import { ORDER_STATUS } from './enums';
@@ -27,21 +27,26 @@ export interface ITeamDocument extends Timestamps {
   userDetails?: Partial<IUserDocument>;
   __v?: number;
 }
+export interface ParamsDictionary {
+  [key: string]: string;
+}
+export interface IUserProfile {
+  role: USER_ROLES;
+  username?: string;
+  picture?: string;
+}
 export interface IUserDocument extends Timestamps {
   _id: string | Schema.Types.ObjectId;
-  username: string;
   email: string;
   password: string;
+  profile: IUserProfile;
+  teamId: string | Schema.Types.ObjectId;
   storeIds?: (string | Schema.Types.ObjectId)[];
   storesDetails?: Partial<IStoreDocument>[];
-  profile: {
-    role: USER_ROLES;
-  };
   private?: {
     invalidToken: ExpToken;
   };
   __v?: number;
-  teamId: string | Schema.Types.ObjectId;
 }
 
 export interface IStoreDocument extends Timestamps {
@@ -74,7 +79,8 @@ export interface GeneralResponse<T> {
   error?: GenericError;
   data?: T;
 }
-export interface ExtendedRequest<B> extends Request {
+
+export interface ExtendedRequest<B, P extends ParamsDictionary> extends Request {
   body: B | undefined;
   user?: IUserDocument;
   isStoreOwner?: boolean;
@@ -83,10 +89,11 @@ export interface ExtendedRequest<B> extends Request {
   isOrderOwner?: boolean;
   isTeamOwner?: boolean;
   order?: IOrderDocument;
-  hasAlreadyRevieweProduct?: boolean;
+  hasAlreadyReviewedProduct?: boolean;
   storeId?: string;
   productId?: string;
   currentSession?: mongo.ClientSession;
+  params: P;
 }
 
 export interface IReviewDocument extends Timestamps {
@@ -134,6 +141,7 @@ interface PermissionLevel {
   all: string;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const PERMISSIONS_KEYS = ['teams', 'users', 'stores', 'products', 'cartItems', 'carts', 'orders', 'reports', 'graphics', 'histories'] as const;
 
 export type PermissionKey = (typeof PERMISSIONS_KEYS)[number];
