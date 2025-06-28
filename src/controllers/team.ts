@@ -1,7 +1,7 @@
 import { NextFunction, Response } from 'express';
 import Joi, { type LanguageMessages } from 'joi';
 
-import { ExtendedRequest, ITeamDocument } from '../types/models';
+import { ExtendedRequest, ITeamDocument, ParamsDictionary } from '../types/models';
 import * as teamBusiness from '../business/team';
 import { createError, handleError } from '../middlewares/errors';
 import { HTTP_STATUS_CODES } from '../types/enums';
@@ -12,7 +12,7 @@ interface AddTeamPayload {
   owner?: string;
 }
 
-export const addTeamCtrl = async (req: ExtendedRequest<AddTeamPayload>, res: Response, next: NextFunction) => {
+export const addTeamCtrl = async (req: ExtendedRequest<AddTeamPayload, ParamsDictionary>, res: Response, next: NextFunction) => {
   const { name, description, owner } = req.body || {};
 
   const nameMessages: LanguageMessages = {
@@ -45,7 +45,7 @@ export const addTeamCtrl = async (req: ExtendedRequest<AddTeamPayload>, res: Res
     res.status(HTTP_STATUS_CODES.CREATED).json({ teamId });
   }
 };
-export const getTeams = async (req: ExtendedRequest<undefined>, res: Response, next: NextFunction) => {
+export const getTeams = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {
   const { user } = req;
   const session = req.currentSession;
   if (!user) {
@@ -59,7 +59,7 @@ export const getTeams = async (req: ExtendedRequest<undefined>, res: Response, n
   res.status(HTTP_STATUS_CODES.OK).json({ teams });
 };
 
-export const deleteTeam = async (req: ExtendedRequest<undefined>, res: Response, next: NextFunction) => {
+export const deleteTeam = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {
   const messages: LanguageMessages = {
     'any.required': 'Please provide a team id',
     'string.pattern.base': 'Please provide a valid team id',
@@ -86,7 +86,7 @@ interface JoiSchema {
   };
   body: EditTeamPayload;
 }
-export const editTeam = async (req: ExtendedRequest<EditTeamPayload>, res: Response, next: NextFunction) => {
+export const editTeam = async (req: ExtendedRequest<EditTeamPayload, ParamsDictionary>, res: Response, next: NextFunction) => {
   const body = req.body;
   const teamIdMessages: LanguageMessages = {
     'any.required': 'Please provide a team id',
@@ -141,7 +141,7 @@ export const editTeam = async (req: ExtendedRequest<EditTeamPayload>, res: Respo
 };
 
 type GetOneTeamPayload = API_TYPES.Routes['business']['teams']['getOne'];
-export const getOneTeam = async (req: ExtendedRequest<undefined>, res: Response, next: NextFunction) => {
+export const getOneTeam = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {
   const params = req.params as unknown as GetOneTeamPayload;
   const teamIdMessages: LanguageMessages = {
     'any.required': 'Please provide a team id',

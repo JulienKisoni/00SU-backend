@@ -16,7 +16,7 @@ interface DeleteResult {
 export const clearDatabase = async () => {
   const { collections } = connection;
 
-  let promises: Promise<DeleteResult>[] = [];
+  const promises: Promise<DeleteResult>[] = [];
 
   for (const key in collections) {
     if (Object.prototype.hasOwnProperty.call(collections, key)) {
@@ -36,13 +36,13 @@ interface ISeedReturn {
   order: IOrderDocument | undefined;
 }
 export const seedDatabase = async (): Promise<ISeedReturn> => {
-  let user: IUserDocument | undefined;
+  let user: IUserDocument | undefined = undefined;
   let store: IStoreDocument | undefined;
   let product: IProductDocument | undefined;
   let review: IReviewDocument | undefined;
   let order: IOrderDocument | undefined;
   await clearDatabase();
-  const users = await injectUsers();
+  const users = await injectUsers([]);
   user = users[0];
   if (user) {
     const stores = await injectStores(user);

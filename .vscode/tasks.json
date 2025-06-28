@@ -1,0 +1,14 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "npm: build",
+      "type": "shell",
+      "command": "/Users/lekingsoni/.nvm/versions/node/v22.16.0/bin/node",
+      "args": ["/opt/homebrew/bin/yarn", "build"],
+      "group": "build",
+      "problemMatcher": [],
+      "detail": "Runs yarn build using Node.js 22 explicitly"
+    }
+  ]
+}

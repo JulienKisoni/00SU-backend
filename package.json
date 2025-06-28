@@ -9,7 +9,7 @@
   },
   "scripts": {
     "start": "node ./dist/src/index.js",
-    "dev": "nodemon src/index.ts",
+    "dev": "nodemon",
     "workers": "nodemon src/workers.ts",
     "copyFiles": "copy-files-from-to",
     "build:clean": "rimraf ./dist --glob",

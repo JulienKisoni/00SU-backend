@@ -23,7 +23,13 @@ const format = winston.format.combine(
   winston.format.printf((info) => `${info.timestamp} ${info.level}: ${info.message}`),
 );
 
-const transports = [new winston.transports.Console()];
+const transports = [
+  new winston.transports.Console({
+    stderrLevels: [], // 🔁 Prevents using stderr for any log levels
+    debugStdout: true, // ✅ Ensures debug-level logs use stdout
+    forceConsole: true, // ✅ Forces logs to console, even in some edge cases
+  }),
+];
 const Logger = winston.createLogger({
   levels,
   format,

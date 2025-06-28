@@ -9,6 +9,7 @@ export interface ITeamMethods extends ITeamDocument {
   updateSelf?: (payload: UpdateQuery<ITeamDocument>) => Promise<UpdateWriteOpResult>;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ITeamStatics extends Model<ITeamMethods> {}
 
 const teamSchema = new Schema<ITeamSchema>(

@@ -1,4 +1,4 @@
-import { IUserDocument, USER_ROLES } from '../../src/types/models';
+import { ITeamDocument, IUserDocument, USER_ROLES } from '../../src/types/models';
 import DummyUsers from '../../mocks/users.json';
 import { IUserMethods, UserModel } from '../../src/models/user';
 import { encrypt } from '../../src/utils/hash';
@@ -6,20 +6,29 @@ import * as authBusiness from '../../src/business/auth';
 
 type CreateUserDoc = Omit<IUserMethods, '_id' | 'createdAt' | 'updatedAt'>;
 
-export const injectUsers = async (): Promise<(IUserDocument | undefined)[]> => {
-  const users = await createUsers();
+export const injectUsers = async (teams: ITeamDocument[]): Promise<(IUserDocument | undefined)[]> => {
+  const promises = [];
+  for (const team of teams) {
+    promises.push(createUsers(team._id));
+  }
+  const responses = await Promise.all(promises);
+  const users: (IUserDocument | undefined)[] = [];
+  responses.forEach((response) => {
+    users.push(...response);
+  });
   return users;
 };
 
-export const createUsers = async () => {
+export const createUsers = async (teamId: string) => {
   const promises = DummyUsers.map((user) => {
     const { username, password, email, role } = user;
     const doc: CreateUserDoc = {
-      username,
       password,
       email,
+      teamId,
       profile: {
         role: role as USER_ROLES,
+        username,
       },
     };
     return createUser(doc);

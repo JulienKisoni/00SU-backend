@@ -24,6 +24,7 @@ function onError(error: { syscall: string; code: string }) {
 }
 
 export const startServer = async (port: string, app: Application): Promise<http.Server> => {
+  console.log(`Inside startServer`);
   const server = http.createServer(app);
   function onListening() {
     const addr = server.address();
@@ -46,6 +47,7 @@ export const startServer = async (port: string, app: Application): Promise<http.
   }
   const connection_uri = `${DATABASE_URI}/${DATABASE_NAME}`;
   try {
+    console.log(`Connecting to MongoDB at ${connection_uri}`);
     await connect(connection_uri);
     Logger.info(`Connected to DB ${DATABASE_NAME}`);
     server.listen(port);
