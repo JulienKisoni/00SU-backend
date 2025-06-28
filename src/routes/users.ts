@@ -26,7 +26,7 @@ usersRouter.get(
 usersRouter.post('/signup', limiter, userCtrl.addUserCtrl);
 usersRouter.post('/invalidateToken', limiter, userMiddleware.isAdmin, userCtrl.invalidateToken);
 usersRouter.post(
-  '/:teamId/inviteUser',
+  '/teams/:teamId/inviteUser',
   permissionMiddleware.hasPermission({ Model: 'users', Action: 'create' }),
   teamMiddleware.isTeamOwner,
   userCtrl.inviteUserCtrl,

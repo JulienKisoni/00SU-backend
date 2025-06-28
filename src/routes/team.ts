@@ -17,11 +17,16 @@ teamsRouter.get('/:teamId', permissionMiddleware.hasPermission({ Model: 'teams',
 teamsRouter.post('/add', limiter, teamCtrl.addTeamCtrl);
 
 /* [PATCH] */
-teamsRouter.patch('/:team', permissionMiddleware.hasPermission({ Model: 'teams', Action: 'update' }), teamMiddleware.isTeamOwner, teamCtrl.editTeam);
+teamsRouter.patch(
+  '/:teamId',
+  permissionMiddleware.hasPermission({ Model: 'teams', Action: 'update' }),
+  teamMiddleware.isTeamOwner,
+  teamCtrl.editTeam,
+);
 
 /* [DELETE] */
 teamsRouter.delete(
-  '/:team',
+  '/:teamId',
   permissionMiddleware.hasPermission({ Model: 'teams', Action: 'delete' }),
   teamMiddleware.isTeamOwner,
   teamCtrl.deleteTeam,

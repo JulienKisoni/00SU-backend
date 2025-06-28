@@ -78,7 +78,7 @@ export const recoverPassword = async (req: ExtendedRequest<RecoverPasswordBody, 
     'any.required': 'The refreshToken is required',
   };
   const schema = Joi.object<RecoverPasswordBody>({
-    email: Joi.string().required().messages(messages),
+    email: Joi.string().email().required().messages(messages),
   });
   const session = req.currentSession;
   const { error, value } = schema.validate(req.body, { stripUnknown: true, abortEarly: true });

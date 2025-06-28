@@ -4,8 +4,10 @@ import { UpdateQuery } from 'mongoose';
 
 import { ITeamDocument, IUserDocument, RetrieveOneFilters } from '../types/models';
 import { ITeamMethods, TeamModel } from '../models/team';
+import { UserModel } from '../models/user';
 import { createError, GenericError } from '../middlewares/errors';
 import { HTTP_STATUS_CODES } from '../types/enums';
+import { transformUser } from './users';
 
 const retrieveTeam = async (filters: RetrieveOneFilters<ITeamDocument>): Promise<ITeamDocument | null> => {
   const team = (await TeamModel.findOne(filters).populate({ path: 'owner' }).lean().exec()) as ITeamDocument;
@@ -13,7 +15,8 @@ const retrieveTeam = async (filters: RetrieveOneFilters<ITeamDocument>): Promise
     return null;
   }
   const userDetails = team.owner as unknown as IUserDocument;
-  team.userDetails = userDetails;
+  team.userDetails = transformUser({ user: userDetails, excludedFields: ['__v', 'private', 'password'] });
+  team.owner = userDetails._id;
 
   return team;
 };
@@ -39,8 +42,17 @@ type AddTeamReturn = {
 
 export const addTeam = async ({ name, description, owner }: AddTeamPayload): Promise<AddTeamReturn> => {
   let team: ITeamDocument | null = null;
-  if (owner) {
-    team = await TeamModel.findOne({ owner }).exec();
+  const user = await UserModel.findById(owner).exec();
+  const userId = user?._id;
+  if (userId) {
+    team = await TeamModel.findOne({ owner: userId }).exec();
+  } else {
+    const error = createError({
+      statusCode: HTTP_STATUS_CODES.NOT_FOUND,
+      publicMessage: 'Owner does not exist',
+      message: 'Cannot create team with non existing team owner ',
+    });
+    return { error };
   }
   if (team && team._id) {
     const error = createError({
@@ -57,6 +69,7 @@ export const addTeam = async ({ name, description, owner }: AddTeamPayload): Pro
   };
   const result = await TeamModel.create(payload);
   const teamId = result._id;
+  await UserModel.findByIdAndUpdate(userId, { teamId }).exec();
   return { teamId: teamId.toString() };
 };
 

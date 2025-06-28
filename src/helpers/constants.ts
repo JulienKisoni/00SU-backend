@@ -15,6 +15,10 @@ export const nonSecureRoutes: { path: string; method: string }[] = [
     method: 'POST',
   },
   {
+    path: '/auth/recoverPassword',
+    method: 'POST',
+  },
+  {
     path: '/teams/add',
     method: 'POST',
   },
