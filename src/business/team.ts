@@ -3,7 +3,7 @@ import isEmpty from 'lodash.isempty';
 import { UpdateQuery } from 'mongoose';
 
 import { ITeamDocument, IUserDocument, RetrieveOneFilters } from '../types/models';
-import { ITeamMethods, TeamModel } from 'src/models/team';
+import { ITeamMethods, TeamModel } from '../models/team';
 import { createError, GenericError } from '../middlewares/errors';
 import { HTTP_STATUS_CODES } from '../types/enums';
 

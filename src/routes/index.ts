@@ -7,6 +7,7 @@ import { productsRouter } from './products';
 import { reviewRouter } from './reviews';
 import { orderRouters } from './orders';
 import { authRouter } from './auth';
+import { teamsRouter } from './team';
 import { HTTP_STATUS_CODES } from '../types/enums';
 import { rateLimitConfig } from '../helpers/constants';
 
@@ -19,7 +20,7 @@ const getController = (_req: Request, res: Response) => {
 
 /* GET home page. */
 router.get('/', getController);
-router.get('/debug-sentry', function mainHandler(_, __) {
+router.get('/debug-sentry', function mainHandler() {
   throw new Error('My first Sentry error!');
 });
 
@@ -29,5 +30,6 @@ router.use('/products', productsRouter);
 router.use('/reviews', reviewRouter);
 router.use('/orders', orderRouters);
 router.use('/auth', limiter, authRouter);
+router.use('/teams', teamsRouter);
 
 export default router;

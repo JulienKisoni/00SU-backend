@@ -24,7 +24,6 @@ function onError(error: { syscall: string; code: string }) {
 }
 
 export const startServer = async (port: string, app: Application): Promise<http.Server> => {
-  console.log(`Inside startServer`);
   const server = http.createServer(app);
   function onListening() {
     const addr = server.address();

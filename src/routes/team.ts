@@ -14,7 +14,7 @@ teamsRouter.get('/', permissionMiddleware.hasPermission({ Model: 'teams', Action
 teamsRouter.get('/:teamId', permissionMiddleware.hasPermission({ Model: 'teams', Action: 'read' }), teamMiddleware.isTeamOwner, teamCtrl.getOneTeam);
 
 /* [POST] */
-teamsRouter.post('/add', limiter, permissionMiddleware.hasPermission({ Model: 'teams', Action: 'create' }), teamCtrl.addTeamCtrl);
+teamsRouter.post('/add', limiter, teamCtrl.addTeamCtrl);
 
 /* [PATCH] */
 teamsRouter.patch('/:team', permissionMiddleware.hasPermission({ Model: 'teams', Action: 'update' }), teamMiddleware.isTeamOwner, teamCtrl.editTeam);

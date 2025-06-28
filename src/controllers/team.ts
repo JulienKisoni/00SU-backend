@@ -29,7 +29,7 @@ export const addTeamCtrl = async (req: ExtendedRequest<AddTeamPayload, ParamsDic
   const schema = Joi.object<AddTeamPayload>({
     name: Joi.string().min(3).max(100).required().messages(nameMessages),
     description: Joi.string().min(6).max(500).messages(descriptionMessages),
-    owner: Joi.string().regex(regex.mongoId),
+    owner: Joi.string().required().regex(regex.mongoId),
   });
   const { error, value } = schema.validate({ name, description, owner });
   if (error) {

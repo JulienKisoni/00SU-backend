@@ -1,7 +1,7 @@
 import { NextFunction, Response } from 'express';
 import { mongo } from 'mongoose';
 import Joi from 'joi';
-import * as Sentry from '@sentry/node';
+// import * as Sentry from '@sentry/node';
 
 import { HTTP_STATUS_CODES } from '../types/enums';
 import { ExtendedRequest, ParamsDictionary } from '../types/models';
@@ -25,7 +25,8 @@ export class GenericError extends Error {
   }
 }
 
-export const errorHandler = async (error: GenericError, req: ExtendedRequest<unknown, ParamsDictionary>, res: Response) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const errorHandler = async (error: GenericError, req: ExtendedRequest<unknown, ParamsDictionary>, res: Response, _next: NextFunction) => {
   const { statusCode = HTTP_STATUS_CODES.STH_WENT_WRONG, message, publicMessage = 'Something went wrong', stack } = error;
   const exception = `Public message | ${publicMessage} | Stack: ${stack || message}`;
   Logger.error(exception);
@@ -34,7 +35,7 @@ export const errorHandler = async (error: GenericError, req: ExtendedRequest<unk
     await session.abortTransaction();
     await session.endSession();
   }
-  Sentry.withScope((scope) => {
+  /* Sentry.withScope((scope) => {
     const user: Sentry.User = {
       id: req.user?._id.toString(),
       email: req.user?.email,
@@ -42,7 +43,8 @@ export const errorHandler = async (error: GenericError, req: ExtendedRequest<unk
     };
     scope.setUser(user);
     Sentry.captureException(exception);
-  });
+  }); */
+  Logger.info('About to return the error ', { statusCode });
   res.status(statusCode).json({
     errors: [
       {

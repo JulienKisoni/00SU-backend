@@ -15,5 +15,4 @@ import { startServer } from './utils/server';
 const port = process.env.PORT || '8000';
 app.set('port', port);
 
-console.log('🚀 App is about to start on port', port);
 startServer(port, app);

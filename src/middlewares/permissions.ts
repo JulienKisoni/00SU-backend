@@ -11,6 +11,7 @@ interface HasPerm {
 
 export const hasPermission = ({ Model, Action }: HasPerm) => {
   return (req: ExtendedRequest<unknown, ParamsDictionary>, _res: Response, next: NextFunction) => {
+    console.log('Checking permissions');
     const { user } = req;
     const role = user?.profile?.role;
     if (!role) {

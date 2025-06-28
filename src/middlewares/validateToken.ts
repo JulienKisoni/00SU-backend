@@ -25,6 +25,7 @@ export const validateToken = async (req: ExtendedRequest<undefined>, _res: Respo
     const error = createError({ statusCode: HTTP_STATUS_CODES.UNAUTHORIZED, message: 'No authorization header', publicMessage: 'Unauthorized' });
     return next(error);
   }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_, token] = authorization.split(' ');
   const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
   if (!ACCESS_TOKEN_SECRET) {

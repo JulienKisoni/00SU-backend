@@ -22,7 +22,7 @@ interface ExpToken {
 export interface ITeamDocument extends Timestamps {
   _id: string;
   name: string;
-  owner?: string | Schema.Types.ObjectId;
+  owner: string | Schema.Types.ObjectId;
   description?: string;
   userDetails?: Partial<IUserDocument>;
   __v?: number;
