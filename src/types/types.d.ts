@@ -28,9 +28,18 @@ namespace API_TYPES {
 
   interface AddStore {
     userId: string;
+    teamId: string;
     active: boolean;
     name: string;
     description: string;
+    picture?: string;
+    address: {
+      line1: string;
+      line2?: string;
+      country: string;
+      state: string;
+      city: string;
+    };
   }
   interface DeleteStore {
     storeId: string;
@@ -97,11 +106,20 @@ namespace API_TYPES {
         active?: boolean;
         name?: string;
         description?: string;
+        picture?: string;
+        address?: {
+          line1: string;
+          line2?: string;
+          country: string;
+          state: string;
+          city: string;
+        };
       };
       addStore: AddStore;
       deleteStore: DeleteStore;
       getOne: {
         storeId: string;
+        teamId: string;
       };
     };
     users: {

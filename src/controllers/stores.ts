@@ -7,7 +7,7 @@ import { createError, handleError } from '../middlewares/errors';
 import { HTTP_STATUS_CODES } from '../types/enums';
 import * as storeBusiness from '../business/stores';
 
-type AddStoreBody = Pick<IStoreDocument, 'name' | 'description' | 'active'>;
+type AddStoreBody = Pick<IStoreDocument, 'name' | 'description' | 'active' | 'address' | 'picture'>;
 interface AddStoreJoiSchema {
   params: {
     userId: string;
@@ -15,10 +15,10 @@ interface AddStoreJoiSchema {
   body: AddStoreBody;
 }
 export const addStore = async (req: ExtendedRequest<AddStoreBody, ParamsDictionary>, res: Response, next: NextFunction) => {
-  const userId = req.user?._id.toString();
+  const user = req.user;
   const session = req.currentSession;
   const body = req.body;
-  if (!userId) {
+  if (!user) {
     const error = createError({
       statusCode: HTTP_STATUS_CODES.UNAUTHORIZED,
       message: 'NO user associated with the request',
@@ -34,22 +34,49 @@ export const addStore = async (req: ExtendedRequest<AddStoreBody, ParamsDictiona
     });
     return handleError({ error, next, currentSession: session });
   }
+  const userId = user._id.toString();
   const userIdMessages: LanguageMessages = {
     'any.required': 'Please provide a user id',
     'string.pattern.base': 'Please provide a valid user id',
   };
   const nameMessages: LanguageMessages = {
     'any.required': 'Please provide a store name',
-    'string.min': 'The field name must have 6 characters minimum',
+    'string.min': 'The field name must have 3 characters minimum',
+    'string.max': 'The field description must have 100 characters maximum',
   };
   const descriptionMessages: LanguageMessages = {
     'any.required': 'Please provide a store description',
-    'string.min': 'The field description must have 12 characters minimum',
-    'string.max': 'The field description must have 100 characters maximum',
+    'string.min': 'The field description must have 6 characters minimum',
+    'string.max': 'The field description must have 500 characters maximum',
   };
   const activeMessages: LanguageMessages = {
     'any.required': 'The field active is required',
   };
+  const line1Messages: LanguageMessages = {
+    'any.required': 'Please provide a address line 1',
+    'string.min': 'The field name must have 10 characters minimum',
+    'string.max': 'The field description must have 500 characters maximum',
+  };
+  const line2Messages: LanguageMessages = {
+    'string.min': 'The field name must have 10 characters minimum',
+    'string.max': 'The field description must have 500 characters maximum',
+  };
+  const cityMessages: LanguageMessages = {
+    'any.required': 'Please provide a city',
+    'string.min': 'The field name must have 3 characters minimum',
+    'string.max': 'The field description must have 100 characters maximum',
+  };
+  const stateMessages: LanguageMessages = {
+    'any.required': 'Please provide a state',
+    'string.min': 'The field name must have 3 characters minimum',
+    'string.max': 'The field description must have 100 characters maximum',
+  };
+  const countryMessages: LanguageMessages = {
+    'any.required': 'Please provide a country',
+    'string.min': 'The field name must have 3 characters minimum',
+    'string.max': 'The field description must have 100 characters maximum',
+  };
+
   const payload: AddStoreJoiSchema = {
     params: {
       userId,
@@ -64,13 +91,21 @@ export const addStore = async (req: ExtendedRequest<AddStoreBody, ParamsDictiona
       name: Joi.string().min(6).required().messages(nameMessages),
       description: Joi.string().min(6).max(100).required().messages(descriptionMessages),
       active: Joi.bool().required().messages(activeMessages),
+      picture: Joi.string().min(150).max(2000),
+      address: Joi.object({
+        line1: Joi.string().required().min(10).max(500).messages(line1Messages),
+        line2: Joi.string().min(10).max(500).messages(line2Messages),
+        country: Joi.string().required().min(3).max(100).messages(countryMessages),
+        city: Joi.string().required().min(3).max(100).messages(cityMessages),
+        state: Joi.string().required().min(3).max(100).messages(stateMessages),
+      }).required(),
     },
   });
   const { error, value } = schema.validate(payload, { stripUnknown: true, abortEarly: true });
   if (error) {
     return handleError({ error, next, currentSession: session });
   }
-  const { storeId, error: err } = await storeBusiness.addStore({ ...value.params, ...value.body });
+  const { storeId, error: err } = await storeBusiness.addStore({ ...value.params, ...value.body, teamId: user.teamId.toString() });
   if (err) {
     return handleError({ error: err, next, currentSession: session });
   }
@@ -87,7 +122,8 @@ export const getStores = async (req: ExtendedRequest<undefined, ParamsDictionary
     const err = createError({ statusCode: HTTP_STATUS_CODES.FORBIDDEN, message: 'No user associated with the request found' });
     return handleError({ error: err, next, currentSession: session });
   }
-  const { stores } = await storeBusiness.getStores();
+  const teamId = user.teamId;
+  const { stores } = await storeBusiness.getStores(teamId.toString());
   if (session) {
     await session.endSession();
   }
@@ -141,6 +177,26 @@ export const editStore = async (req: ExtendedRequest<EditStoreBody, ParamsDictio
     'string.min': 'The field description must have 12 characters minimum',
     'string.max': 'The field description must have 100 characters maximum',
   };
+  const line1Messages: LanguageMessages = {
+    'string.min': 'The field name must have 10 characters minimum',
+    'string.max': 'The field description must have 500 characters maximum',
+  };
+  const line2Messages: LanguageMessages = {
+    'string.min': 'The field name must have 10 characters minimum',
+    'string.max': 'The field description must have 500 characters maximum',
+  };
+  const cityMessages: LanguageMessages = {
+    'string.min': 'The field name must have 3 characters minimum',
+    'string.max': 'The field description must have 100 characters maximum',
+  };
+  const stateMessages: LanguageMessages = {
+    'string.min': 'The field name must have 3 characters minimum',
+    'string.max': 'The field description must have 100 characters maximum',
+  };
+  const countryMessages: LanguageMessages = {
+    'string.min': 'The field name must have 3 characters minimum',
+    'string.max': 'The field description must have 100 characters maximum',
+  };
   const session = req.currentSession;
   const schema = Joi.object<EditStoreSchema>({
     params: {
@@ -150,6 +206,14 @@ export const editStore = async (req: ExtendedRequest<EditStoreBody, ParamsDictio
       name: Joi.string().min(6).messages(nameMessages),
       description: Joi.string().min(6).max(100).messages(descriptionMessages),
       active: Joi.bool(),
+      picture: Joi.string().min(150).max(2000),
+      address: Joi.object({
+        line1: Joi.string().required().min(10).max(500).messages(line1Messages),
+        line2: Joi.string().min(10).max(500).messages(line2Messages),
+        country: Joi.string().required().min(3).max(100).messages(countryMessages),
+        city: Joi.string().required().min(3).max(100).messages(cityMessages),
+        state: Joi.string().required().min(3).max(100).messages(stateMessages),
+      }),
     },
   });
   const payload = {
@@ -173,6 +237,12 @@ export const editStore = async (req: ExtendedRequest<EditStoreBody, ParamsDictio
 type GetOneStorePayload = API_TYPES.Routes['business']['stores']['getOne'];
 export const getOneStore = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {
   const params = req.params as unknown as GetOneStorePayload;
+  const session = req.currentSession;
+  const { user } = req;
+  if (!user) {
+    const err = createError({ statusCode: HTTP_STATUS_CODES.FORBIDDEN, message: 'No user associated with the request found' });
+    return handleError({ error: err, next, currentSession: session });
+  }
   const storeIdMessages: LanguageMessages = {
     'any.required': 'Please provide a store id',
     'string.pattern.base': 'Please provide a valid store id',
@@ -181,13 +251,11 @@ export const getOneStore = async (req: ExtendedRequest<undefined, ParamsDictiona
     storeId: Joi.string().regex(regex.mongoId).required().messages(storeIdMessages),
   });
 
-  const session = req.currentSession;
-
   const { error, value } = schema.validate(params, { stripUnknown: true, abortEarly: true });
   if (error) {
     return handleError({ error, next, currentSession: session });
   }
-  const { error: _error, store } = await storeBusiness.getOne({ storeId: value.storeId });
+  const { error: _error, store } = await storeBusiness.getOne({ storeId: value.storeId, teamId: user.teamId.toString() });
   if (_error) {
     return handleError({ error: _error, next, currentSession: session });
   }

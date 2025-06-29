@@ -74,7 +74,7 @@ const permissions: UserPermissions = {
 };
 
 export const roleActions: ROLES_PERMISSIONS = {
-  admin: [permissions.teams.all, permissions.users.all],
-  manager: [permissions.users.all],
-  clerk: [permissions.users.all],
+  admin: [permissions.teams.all, permissions.users.all, permissions.stores.all],
+  manager: [permissions.users.all, permissions.stores.read],
+  clerk: [permissions.users.all, permissions.stores.read],
 };

@@ -25,7 +25,7 @@ const retrieveStore = async (filters: RetrieveOneFilters<IStoreDocument>): Promi
 
 type AddStorePayload = API_TYPES.Routes['business']['stores']['addStore'];
 type AddStoreResponse = Promise<{ storeId?: string; error?: GenericError }>;
-export const addStore = async ({ userId, name, description, active }: AddStorePayload): AddStoreResponse => {
+export const addStore = async ({ userId, name, description, active, picture, address, teamId }: AddStorePayload): AddStoreResponse => {
   const user = await UserModel.findById<IUserMethods>(userId).exec();
   if (!user || !user._id || !user?.updateSelf) {
     const error = createError({
@@ -37,6 +37,9 @@ export const addStore = async ({ userId, name, description, active }: AddStorePa
   }
   const store = await StoreModel.create({
     owner: userId,
+    teamId,
+    picture,
+    address,
     name,
     description,
     active,
@@ -47,8 +50,8 @@ export const addStore = async ({ userId, name, description, active }: AddStorePa
 };
 
 type GetStoresResponse = Promise<{ stores: Partial<IStoreDocument>[] }>;
-export const getStores = async (): GetStoresResponse => {
-  const stores = await StoreModel.find({}).lean().exec();
+export const getStores = async (teamId: string): GetStoresResponse => {
+  const stores = await StoreModel.find({ teamId }).lean().exec();
   const transformed = stores.map((store) => omit(store, ['__v']));
   return { stores: transformed };
 };
@@ -113,8 +116,8 @@ interface GetOneUserResponse {
   error?: GenericError;
   store?: IStoreDocument;
 }
-export const getOne = async ({ storeId }: GetOneStorePayload): Promise<GetOneUserResponse> => {
-  const store = await retrieveStore({ _id: storeId });
+export const getOne = async ({ storeId, teamId }: GetOneStorePayload): Promise<GetOneUserResponse> => {
+  const store = await retrieveStore({ _id: storeId, teamId });
   if (!store?._id) {
     const error = createError({
       statusCode: HTTP_STATUS_CODES.NOT_FOUND,

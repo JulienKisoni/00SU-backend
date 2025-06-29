@@ -49,14 +49,25 @@ export interface IUserDocument extends Timestamps {
   __v?: number;
 }
 
+export interface IAddress {
+  line1: string;
+  line2?: string;
+  country: string;
+  state: string;
+  city: string;
+}
+
 export interface IStoreDocument extends Timestamps {
   _id: string | Schema.Types.ObjectId;
   name: string;
+  description: string;
+  address: IAddress;
   owner: string | Schema.Types.ObjectId;
+  teamId: string | Schema.Types.ObjectId;
   ownerDetails?: Partial<IUserDocument>;
   products: (string | Schema.Types.ObjectId)[];
-  description: string;
   active: boolean;
+  picture?: string;
   __v?: number;
 }
 
