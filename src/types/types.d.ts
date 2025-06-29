@@ -49,7 +49,7 @@ namespace API_TYPES {
     quantity: number;
     description: string;
     minQuantity: number;
-    active: boolean;
+    picture?: string;
     unitPrice: number;
   }
 
@@ -140,9 +140,11 @@ namespace API_TYPES {
         body: AddProductBody | undefined;
         owner: string;
         storeId: string;
+        teamId: string;
       };
       getByStoreId: {
         storeId: string;
+        teamId: string;
       };
     };
     orders: {

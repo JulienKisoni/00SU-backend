@@ -21,15 +21,14 @@ export const addProduct = async (req: ExtendedRequest<AddProductBody, ParamsDict
     'string.pattern.base': 'Please provide a valid storeId',
   };
   const nameMessages: LanguageMessages = {
-    'any.required': 'Please provide a store name',
+    'any.required': 'Please provide a product name',
+    'string.min': 'The field name must have 3 characters minimum',
+    'string.max': 'The field name must have 200 characters maximum',
   };
   const descriptionMessages: LanguageMessages = {
-    'any.required': 'Please provide a store description',
-    'string.min': 'The field description must have 12 characters minimum',
-    'string.max': 'The field description must have 100 characters maximum',
-  };
-  const activeMessages: LanguageMessages = {
-    'any.required': 'The field active is required',
+    'any.required': 'Please provide a product description',
+    'string.min': 'The field description must have 6 characters minimum',
+    'string.max': 'The field description must have 500 characters maximum',
   };
   const qtyMessages: LanguageMessages = {
     'any.required': 'The field quantity is required',
@@ -47,10 +46,10 @@ export const addProduct = async (req: ExtendedRequest<AddProductBody, ParamsDict
     },
     body: {
       name: Joi.string().required().messages(nameMessages),
-      quantity: Joi.number().required().messages(qtyMessages),
       description: Joi.string().min(12).max(100).required().messages(descriptionMessages),
+      quantity: Joi.number().required().messages(qtyMessages),
       minQuantity: Joi.number().required().messages(minQtyMessages),
-      active: Joi.bool().required().messages(activeMessages),
+      picture: Joi.string(),
       unitPrice: Joi.number().required().messages(unitPriceMessages),
     },
   });
@@ -61,13 +60,22 @@ export const addProduct = async (req: ExtendedRequest<AddProductBody, ParamsDict
   };
 
   const session = req.currentSession;
-
+  const { user } = req;
+  if (!user) {
+    const err = createError({ statusCode: HTTP_STATUS_CODES.FORBIDDEN, message: 'No user associated with the request found' });
+    return handleError({ error: err, next, currentSession: session });
+  }
   const { error, value } = schema.validate(payload, { stripUnknown: true });
   if (error) {
     return handleError({ error, next, currentSession: session });
   }
-  const owner = req.user?._id?.toString() || '';
-  const { error: _error, data } = await productBusiness.addProduct({ owner, storeId: value.params.storeId, body: value.body });
+  const owner = user._id?.toString() || '';
+  const { error: _error, data } = await productBusiness.addProduct({
+    owner,
+    storeId: value.params.storeId,
+    body: value.body,
+    teamId: user.teamId.toString(),
+  });
   if (_error) {
     return handleError({ error: _error, next, currentSession: session });
   }
@@ -85,7 +93,7 @@ export const getAllProducts = async (_req: Request, res: Response) => {
 
 type GetStoreProductsPayload = API_TYPES.Routes['business']['products']['getByStoreId'];
 export const getStoreProducts = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {
-  const { storeId } = req;
+  const { storeId, user } = req;
   const session = req.currentSession;
   if (!storeId) {
     const error = createError({
@@ -94,6 +102,10 @@ export const getStoreProducts = async (req: ExtendedRequest<undefined, ParamsDic
       publicMessage: 'The store does not exist',
     });
     return handleError({ error, next, currentSession: session });
+  }
+  if (!user) {
+    const err = createError({ statusCode: HTTP_STATUS_CODES.FORBIDDEN, message: 'No user associated with the request found' });
+    return handleError({ error: err, next, currentSession: session });
   }
 
   const storeIdMessages: LanguageMessages = {
@@ -109,7 +121,7 @@ export const getStoreProducts = async (req: ExtendedRequest<undefined, ParamsDic
     return handleError({ error, next, currentSession: session });
   }
 
-  const { products } = await productBusiness.getStoreProducts({ storeId: value.storeId });
+  const { products } = await productBusiness.getStoreProducts({ storeId: value.storeId, teamId: user.teamId.toString() });
 
   if (session) {
     await session.endSession();
@@ -185,23 +197,31 @@ export const updateOne = async (req: ExtendedRequest<UpdateProductBody, ParamsDi
     'string.pattern.base': 'Please provide a valid productId',
   };
   const descriptionMessages: LanguageMessages = {
-    'string.min': 'The field description must have 12 characters minimum',
-    'string.max': 'The field description must have 100 characters maximum',
+    'string.min': 'The field description must have 6 characters minimum',
+    'string.max': 'The field description must have 500 characters maximum',
+  };
+  const nameMessages: LanguageMessages = {
+    'string.min': 'The field description must have 3 characters minimum',
+    'string.max': 'The field description must have 200 characters maximum',
   };
 
   const session = req.currentSession;
-
+  const { user } = req;
+  if (!user) {
+    const err = createError({ statusCode: HTTP_STATUS_CODES.FORBIDDEN, message: 'No user associated with the request found' });
+    return handleError({ error: err, next, currentSession: session });
+  }
   const schema = Joi.object<UpdateProductSchema>({
     params: {
       productId: Joi.string().regex(regex.mongoId).required().messages(productIdMessages),
     },
     body: {
-      name: Joi.string(),
+      name: Joi.string().min(3).max(100).messages(nameMessages),
+      description: Joi.string().min(6).max(500).messages(descriptionMessages),
       quantity: Joi.number(),
-      description: Joi.string().min(12).max(100).messages(descriptionMessages),
       minQuantity: Joi.number(),
-      active: Joi.bool(),
       unitPrice: Joi.number(),
+      picture: Joi.string(),
     },
   });
 
@@ -215,7 +235,7 @@ export const updateOne = async (req: ExtendedRequest<UpdateProductBody, ParamsDi
     return handleError({ error, next, currentSession: session });
   }
 
-  const { error: _error } = await productBusiness.updateOne({ productId: value.params.productId, body: value.body });
+  const { error: _error } = await productBusiness.updateOne({ productId: value.params.productId, body: value.body, teamId: user.teamId.toString() });
   if (_error) {
     return handleError({ error: _error, next, currentSession: session });
   }

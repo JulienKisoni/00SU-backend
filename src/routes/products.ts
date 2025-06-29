@@ -1,21 +1,31 @@
 import { Router } from 'express';
 
 import * as productCtrl from '../controllers/products';
-import * as reviewCtrl from '../controllers/reviews';
 import * as productMiddlewares from '../middlewares/products';
 import * as storeMiddlewares from '../middlewares/store';
+import * as permissionMiddlewares from '../middlewares/permissions';
 
 const productsRouter = Router();
 
 /* [GET] */
-productsRouter.get('/', productCtrl.getAllProducts);
-productsRouter.get('/:productId', productCtrl.getOne);
-productsRouter.get('/:productId/reviews', productMiddlewares.getProduct, reviewCtrl.getProductReviews);
+productsRouter.get('/', permissionMiddlewares.hasPermission({ Model: 'products', Action: 'read' }), productCtrl.getAllProducts);
+productsRouter.get('/:productId', permissionMiddlewares.hasPermission({ Model: 'products', Action: 'read' }), productCtrl.getOne);
 
 /* [DELETE] */
-productsRouter.delete('/:productId', storeMiddlewares.getStore, productMiddlewares.isProductOwner, productCtrl.deleteOne);
+productsRouter.delete(
+  '/:productId',
+  permissionMiddlewares.hasPermission({ Model: 'products', Action: 'delete' }),
+  storeMiddlewares.getStore,
+  productMiddlewares.isProductOwner,
+  productCtrl.deleteOne,
+);
 
 /* [PATCH] */
-productsRouter.patch('/:productId', storeMiddlewares.getStore, productMiddlewares.isProductOwner, productCtrl.updateOne);
+productsRouter.patch(
+  '/:productId',
+  permissionMiddlewares.hasPermission({ Model: 'products', Action: 'update' }),
+  storeMiddlewares.getStore,
+  productCtrl.updateOne,
+);
 
 export { productsRouter };

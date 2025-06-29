@@ -74,15 +74,14 @@ export interface IStoreDocument extends Timestamps {
 export interface IProductDocument extends Timestamps {
   _id: string | Schema.Types.ObjectId;
   name: string;
-  quantity: number;
-  storeId: string | Schema.Types.ObjectId;
   description: string;
+  teamId: string | Schema.Types.ObjectId;
+  storeId: string | Schema.Types.ObjectId;
+  quantity: number;
   minQuantity: number;
-  owner: string | Schema.Types.ObjectId;
-  active: boolean;
   unitPrice: number;
-  reviews: (string | Schema.Types.ObjectId)[];
-  reviewDetails?: Partial<IReviewDocument>[];
+  picture?: string;
+  owner: string | Schema.Types.ObjectId;
   __v?: number;
 }
 
