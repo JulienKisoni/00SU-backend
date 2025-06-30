@@ -103,7 +103,28 @@ export interface ExtendedRequest<B, P extends ParamsDictionary> extends Request 
   storeId?: string;
   productId?: string;
   currentSession?: mongo.ClientSession;
+  cart?: ICart;
+  cartItem?: ICartItem;
+  product?: IProductDocument;
   params: P;
+}
+
+export interface ICartItem extends Timestamps {
+  _id: string | Schema.Types.ObjectId;
+  cartId: string | Schema.Types.ObjectId;
+  productId: string | Schema.Types.ObjectId;
+  quantity: number;
+  totalPrice: number;
+  __v?: number;
+}
+
+export interface ICart extends Timestamps {
+  _id: string | Schema.Types.ObjectId;
+  storeId: string | Schema.Types.ObjectId;
+  userId: string | Schema.Types.ObjectId;
+  totalPrices: number;
+  items?: (string | Schema.Types.ObjectId)[];
+  __v?: number;
 }
 
 export interface IReviewDocument extends Timestamps {

@@ -58,6 +58,11 @@ namespace API_TYPES {
     refreshToken: {
       refreshToken: string;
     };
+    cart: {
+      updateCartItem: {
+        quantity: number;
+      };
+    };
     products: {
       updateOne: {
         name: string;
@@ -147,6 +152,14 @@ namespace API_TYPES {
         teamId: string;
       };
     };
+    cart: {
+      addCartItem: {
+        body: {
+          productId: string;
+          quantity: number;
+        };
+      };
+    };
     orders: {
       getUserOrders: {
         userId: string;
@@ -164,6 +177,15 @@ namespace API_TYPES {
   }
 
   interface QueryParams {
+    cart: {
+      addCartItem: {
+        cartId: string;
+      };
+      deleteOne: {
+        cartItemId: string;
+        cartId: string;
+      };
+    };
     products: {
       deleteOne: {
         storeId: string;
