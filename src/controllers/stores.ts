@@ -54,27 +54,27 @@ export const addStore = async (req: ExtendedRequest<AddStoreBody, ParamsDictiona
   };
   const line1Messages: LanguageMessages = {
     'any.required': 'Please provide a address line 1',
-    'string.min': 'The field name must have 10 characters minimum',
-    'string.max': 'The field description must have 500 characters maximum',
+    'string.min': 'The field line1 must have 10 characters minimum',
+    'string.max': 'The field line1 must have 500 characters maximum',
   };
   const line2Messages: LanguageMessages = {
-    'string.min': 'The field name must have 10 characters minimum',
-    'string.max': 'The field description must have 500 characters maximum',
+    'string.min': 'The field line2 must have 10 characters minimum',
+    'string.max': 'The field line2 must have 500 characters maximum',
   };
   const cityMessages: LanguageMessages = {
     'any.required': 'Please provide a city',
-    'string.min': 'The field name must have 3 characters minimum',
-    'string.max': 'The field description must have 100 characters maximum',
+    'string.min': 'The field city must have 3 characters minimum',
+    'string.max': 'The field city must have 100 characters maximum',
   };
   const stateMessages: LanguageMessages = {
     'any.required': 'Please provide a state',
-    'string.min': 'The field name must have 3 characters minimum',
-    'string.max': 'The field description must have 100 characters maximum',
+    'string.min': 'The field state must have 2 characters minimum',
+    'string.max': 'The field state must have 100 characters maximum',
   };
   const countryMessages: LanguageMessages = {
     'any.required': 'Please provide a country',
-    'string.min': 'The field name must have 3 characters minimum',
-    'string.max': 'The field description must have 100 characters maximum',
+    'string.min': 'The field country must have 3 characters minimum',
+    'string.max': 'The field country must have 100 characters maximum',
   };
 
   const payload: AddStoreJoiSchema = {
@@ -97,7 +97,7 @@ export const addStore = async (req: ExtendedRequest<AddStoreBody, ParamsDictiona
         line2: Joi.string().min(10).max(500).messages(line2Messages),
         country: Joi.string().required().min(3).max(100).messages(countryMessages),
         city: Joi.string().required().min(3).max(100).messages(cityMessages),
-        state: Joi.string().required().min(3).max(100).messages(stateMessages),
+        state: Joi.string().required().min(2).max(100).messages(stateMessages),
       }).required(),
     },
   });
@@ -178,24 +178,24 @@ export const editStore = async (req: ExtendedRequest<EditStoreBody, ParamsDictio
     'string.max': 'The field description must have 100 characters maximum',
   };
   const line1Messages: LanguageMessages = {
-    'string.min': 'The field name must have 10 characters minimum',
-    'string.max': 'The field description must have 500 characters maximum',
+    'string.min': 'The field line1 must have 10 characters minimum',
+    'string.max': 'The field line1 must have 500 characters maximum',
   };
   const line2Messages: LanguageMessages = {
-    'string.min': 'The field name must have 10 characters minimum',
-    'string.max': 'The field description must have 500 characters maximum',
+    'string.min': 'The field line2 must have 10 characters minimum',
+    'string.max': 'The field line2 must have 500 characters maximum',
   };
   const cityMessages: LanguageMessages = {
-    'string.min': 'The field name must have 3 characters minimum',
-    'string.max': 'The field description must have 100 characters maximum',
+    'string.min': 'The field city must have 3 characters minimum',
+    'string.max': 'The field city must have 100 characters maximum',
   };
   const stateMessages: LanguageMessages = {
-    'string.min': 'The field name must have 3 characters minimum',
-    'string.max': 'The field description must have 100 characters maximum',
+    'string.min': 'The field state must have 2 characters minimum',
+    'string.max': 'The field state must have 100 characters maximum',
   };
   const countryMessages: LanguageMessages = {
-    'string.min': 'The field name must have 3 characters minimum',
-    'string.max': 'The field description must have 100 characters maximum',
+    'string.min': 'The field country must have 3 characters minimum',
+    'string.max': 'The field country must have 100 characters maximum',
   };
   const session = req.currentSession;
   const schema = Joi.object<EditStoreSchema>({
@@ -212,7 +212,7 @@ export const editStore = async (req: ExtendedRequest<EditStoreBody, ParamsDictio
         line2: Joi.string().min(10).max(500).messages(line2Messages),
         country: Joi.string().required().min(3).max(100).messages(countryMessages),
         city: Joi.string().required().min(3).max(100).messages(cityMessages),
-        state: Joi.string().required().min(3).max(100).messages(stateMessages),
+        state: Joi.string().required().min(2).max(100).messages(stateMessages),
       }),
     },
   });

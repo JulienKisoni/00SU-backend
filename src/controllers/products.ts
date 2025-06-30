@@ -47,10 +47,10 @@ export const addProduct = async (req: ExtendedRequest<AddProductBody, ParamsDict
     body: {
       name: Joi.string().required().messages(nameMessages),
       description: Joi.string().min(12).max(100).required().messages(descriptionMessages),
-      quantity: Joi.number().required().messages(qtyMessages),
-      minQuantity: Joi.number().required().messages(minQtyMessages),
-      picture: Joi.string(),
-      unitPrice: Joi.number().required().messages(unitPriceMessages),
+      quantity: Joi.number().positive().required().messages(qtyMessages),
+      minQuantity: Joi.number().positive().required().messages(minQtyMessages),
+      picture: Joi.string().min(150).max(2000),
+      unitPrice: Joi.number().positive().required().messages(unitPriceMessages),
     },
   });
 
@@ -201,8 +201,8 @@ export const updateOne = async (req: ExtendedRequest<UpdateProductBody, ParamsDi
     'string.max': 'The field description must have 500 characters maximum',
   };
   const nameMessages: LanguageMessages = {
-    'string.min': 'The field description must have 3 characters minimum',
-    'string.max': 'The field description must have 200 characters maximum',
+    'string.min': 'The field name must have 3 characters minimum',
+    'string.max': 'The field name must have 200 characters maximum',
   };
 
   const session = req.currentSession;

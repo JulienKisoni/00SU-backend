@@ -62,7 +62,7 @@ export const getAllProducts = async (): GetAllProductsReturn => {
 type GetStoreProductsPayload = API_TYPES.Routes['business']['products']['getByStoreId'];
 type GetStoreProductsResponse = Promise<{ products: Partial<IProductDocument>[] }>;
 export const getStoreProducts = async ({ storeId, teamId }: GetStoreProductsPayload): GetStoreProductsResponse => {
-  const response = await ProductModel.find({ storeId, active: true, teamId }).lean().exec();
+  const response = await ProductModel.find({ storeId, teamId }).lean().exec();
   const products = response.map((product) => transformProduct({ product, excludedFields: ['__v'] }));
   return { products: products || [] };
 };
@@ -115,7 +115,7 @@ export const updateOne = async ({ body, productId, teamId }: Partial<UpdateProdu
     });
     return { error };
   }
-  const product = await ProductModel.findOneAndUpdate({ productId, teamId }, body).exec();
+  const product = await ProductModel.findOneAndUpdate({ _id: productId, teamId }, body).exec();
   if (!product?._id) {
     const error = createError({
       statusCode: HTTP_STATUS_CODES.NOT_FOUND,
