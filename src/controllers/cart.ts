@@ -158,3 +158,114 @@ export const updateCartItem = async (req: ExtendedRequest<UpdateCartItemBody, Pa
   }
   res.status(HTTP_STATUS_CODES.OK).json({});
 };
+
+export const createCart = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {
+  const storeIdMessages: LanguageMessages = {
+    'any.required': 'Please provide a storeId',
+    'string.pattern.base': 'Please provide a valid storeId',
+  };
+
+  const session = req.currentSession;
+  const { user } = req;
+  if (!user) {
+    const err = createError({ statusCode: HTTP_STATUS_CODES.FORBIDDEN, message: 'No user associated with the request found' });
+    return handleError({ error: err, next, currentSession: session });
+  }
+  const schema = Joi.object({
+    storeId: Joi.string().regex(regex.mongoId).required().messages(storeIdMessages),
+  });
+
+  const { error, value } = schema.validate(req.params, { stripUnknown: true });
+  if (error) {
+    return handleError({ error, next, currentSession: session });
+  }
+
+  const { error: _error, data } = await cartBusiness.createCart({ storeId: value.storeId, userId: user._id.toString() });
+  if (_error) {
+    return handleError({ error: _error, next, currentSession: session });
+  }
+
+  if (session) {
+    await session.endSession();
+  }
+  res.status(HTTP_STATUS_CODES.OK).json(data);
+};
+
+interface GetCartParams extends ParamsDictionary {
+  storeId: string;
+  userId: string;
+  cartId: string;
+}
+
+export const getCart = async (req: ExtendedRequest<undefined, GetCartParams>, res: Response, next: NextFunction) => {
+  const storeIdMessages: LanguageMessages = {
+    'string.pattern.base': 'Please provide a valid storeId',
+  };
+  const userIdMessages: LanguageMessages = {
+    'string.pattern.base': 'Please provide a valid userId',
+  };
+  const cartIdMessages: LanguageMessages = {
+    'string.pattern.base': 'Please provide a valid cartId',
+  };
+
+  const session = req.currentSession;
+  const { user } = req;
+  if (!user) {
+    const err = createError({ statusCode: HTTP_STATUS_CODES.FORBIDDEN, message: 'No user associated with the request found' });
+    return handleError({ error: err, next, currentSession: session });
+  }
+  const schema = Joi.object<GetCartParams>({
+    storeId: Joi.string().regex(regex.mongoId).messages(storeIdMessages),
+    userId: Joi.string().regex(regex.mongoId).messages(userIdMessages),
+    cartId: Joi.string().regex(regex.mongoId).messages(cartIdMessages),
+  });
+
+  const { error, value } = schema.validate(req.params, { stripUnknown: true });
+  if (error) {
+    return handleError({ error, next, currentSession: session });
+  }
+
+  const { error: _error, data } = await cartBusiness.getCart(value);
+  if (_error) {
+    return handleError({ error: _error, next, currentSession: session });
+  }
+
+  if (session) {
+    await session.endSession();
+  }
+  res.status(HTTP_STATUS_CODES.OK).json(data);
+};
+interface DeleteCartParams extends ParamsDictionary {
+  cartId: string;
+}
+export const deleteCart = async (req: ExtendedRequest<undefined, DeleteCartParams>, res: Response, next: NextFunction) => {
+  const cartIdMessages: LanguageMessages = {
+    'any.required': 'Please provide a cartId',
+    'string.pattern.base': 'Please provide a valid cartId',
+  };
+
+  const session = req.currentSession;
+  const { user } = req;
+  if (!user) {
+    const err = createError({ statusCode: HTTP_STATUS_CODES.FORBIDDEN, message: 'No user associated with the request found' });
+    return handleError({ error: err, next, currentSession: session });
+  }
+  const schema = Joi.object<DeleteCartParams>({
+    cartId: Joi.string().regex(regex.mongoId).required().messages(cartIdMessages),
+  });
+
+  const { error, value } = schema.validate(req.params, { stripUnknown: true });
+  if (error) {
+    return handleError({ error, next, currentSession: session });
+  }
+
+  const { error: _error } = await cartBusiness.deleteCart(value);
+  if (_error) {
+    return handleError({ error: _error, next, currentSession: session });
+  }
+
+  if (session) {
+    await session.endSession();
+  }
+  res.status(HTTP_STATUS_CODES.OK).json({});
+};

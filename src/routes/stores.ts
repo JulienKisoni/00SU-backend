@@ -3,6 +3,7 @@ import express from 'express';
 import * as storeCtrl from '../controllers/stores';
 import * as storeMiddlewares from '../middlewares/store';
 import * as productCtrl from '../controllers/products';
+import * as cartCtrl from '../controllers/cart';
 import * as productMiddlewares from '../middlewares/products';
 import * as permissionMiddlewares from '../middlewares/permissions';
 
@@ -27,6 +28,12 @@ storesRouter.post(
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   productCtrl.addProduct,
+);
+storesRouter.post(
+  '/:storeId/cart',
+  permissionMiddlewares.hasPermission({ Model: 'carts', Action: 'create' }),
+  storeMiddlewares.getStore,
+  cartCtrl.createCart,
 );
 
 /* [DELETE] */

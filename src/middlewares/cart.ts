@@ -5,9 +5,9 @@ import { HTTP_STATUS_CODES } from '../types/enums';
 import { ExtendedRequest, ICartItem, ICart, ParamsDictionary } from '../types/models';
 import { createError, handleError } from './errors';
 import { regex } from '../helpers/constants';
-import { CartModel } from 'src/models/Cart';
-import { CartItemModel } from 'src/models/cartItem';
-import { ProductModel } from 'src/models/product';
+import { CartModel } from '../models/Cart';
+import { CartItemModel } from '../models/cartItem';
+import { ProductModel } from '../models/product';
 
 interface IGetProdMiddleware {
   cartId?: string;

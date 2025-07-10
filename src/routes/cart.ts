@@ -16,6 +16,7 @@ cartRouter.post(
 );
 
 /* [GET] */
+cartRouter.get('/:cartId', permissionMiddlewares.hasPermission({ Model: 'carts', Action: 'read' }), cartCtrl.getCart);
 
 /* [DELETE] */
 cartRouter.delete(
@@ -23,6 +24,7 @@ cartRouter.delete(
   permissionMiddlewares.hasPermission({ Model: 'cartItems', Action: 'delete' }),
   cartCtrl.deleteCartItem,
 );
+cartRouter.delete('/:cartId', permissionMiddlewares.hasPermission({ Model: 'carts', Action: 'delete' }), cartCtrl.deleteCart);
 
 /* [PATCH] */
 cartRouter.patch(
