@@ -9,36 +9,46 @@ import { HTTP_STATUS_CODES } from '../types/enums';
 
 type AddCartItemBody = API_TYPES.Routes['business']['cart']['addCartItem']['body'];
 type AddCartItemParams = Pick<API_TYPES.Routes['params']['cart']['addCartItem'], 'cartId'>;
-interface AddProductSchema {
+interface AddCartItemSchema {
   params: AddCartItemParams;
   body?: AddCartItemBody;
 }
-export const addCartItem = async (req: ExtendedRequest<AddCartItemBody, ParamsDictionary>, res: Response, next: NextFunction) => {
+export const addCartItems = async (req: ExtendedRequest<AddCartItemBody, ParamsDictionary>, res: Response, next: NextFunction) => {
   const params = req.params as unknown as AddCartItemParams;
 
   const cartIdMessages: LanguageMessages = {
     'any.required': 'Please provide a cartId',
     'string.pattern.base': 'Please provide a valid cartId',
   };
+  const qtyMessages: LanguageMessages = {
+    'any.required': 'Please provide a quantity',
+  };
   const productIdMessages: LanguageMessages = {
     'any.required': 'Please provide a productId',
     'string.pattern.base': 'Please provide a valid productId',
   };
-  const qtyMessages: LanguageMessages = {
-    'any.required': 'Please provide a quantity',
+  const itemsMessages: LanguageMessages = {
+    'any.required': 'Please provide at least one item',
   };
 
-  const schema = Joi.object<AddProductSchema>({
+  const schema = Joi.object<AddCartItemSchema>({
     params: {
       cartId: Joi.string().regex(regex.mongoId).required().messages(cartIdMessages),
     },
     body: {
-      quantity: Joi.number().positive().required().messages(qtyMessages),
-      productId: Joi.string().regex(regex.mongoId).required().messages(productIdMessages),
+      items: Joi.array()
+        .items(
+          Joi.object({
+            quantity: Joi.number().positive().required().messages(qtyMessages),
+            productId: Joi.string().regex(regex.mongoId).required().messages(productIdMessages),
+          }),
+        )
+        .required()
+        .messages(itemsMessages),
     },
   });
 
-  const payload: AddProductSchema = {
+  const payload: AddCartItemSchema = {
     params,
     body: req.body,
   };
@@ -53,10 +63,9 @@ export const addCartItem = async (req: ExtendedRequest<AddCartItemBody, ParamsDi
   if (error) {
     return handleError({ error, next, currentSession: session });
   }
-  const { error: _error, data } = await cartBusiness.addProduct({
+  const { error: _error, data } = await cartBusiness.addProducts({
     cartId: value.params.cartId,
-    body: value.body,
-    product: req.product,
+    products: req.productsToAdd,
   });
   if (_error) {
     return handleError({ error: _error, next, currentSession: session });
@@ -65,7 +74,7 @@ export const addCartItem = async (req: ExtendedRequest<AddCartItemBody, ParamsDi
   if (session) {
     await session.endSession();
   }
-  res.status(HTTP_STATUS_CODES.CREATED).json({ cart: data });
+  res.status(HTTP_STATUS_CODES.CREATED).json(data);
 };
 
 export const deleteCartItem = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {

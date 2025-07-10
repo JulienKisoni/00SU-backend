@@ -155,8 +155,10 @@ namespace API_TYPES {
     cart: {
       addCartItem: {
         body: {
-          productId: string;
-          quantity: number;
+          items: {
+            productId: string;
+            quantity: number;
+          }[];
         };
       };
     };

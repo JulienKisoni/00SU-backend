@@ -90,6 +90,10 @@ export interface GeneralResponse<T> {
   data?: T;
 }
 
+export interface ExtendedProduct extends IProductDocument {
+  qtyToAdd: number;
+}
+
 export interface ExtendedRequest<B, P extends ParamsDictionary> extends Request {
   body: B | undefined;
   user?: IUserDocument;
@@ -106,6 +110,7 @@ export interface ExtendedRequest<B, P extends ParamsDictionary> extends Request 
   cart?: ICart;
   cartItem?: ICartItem;
   product?: IProductDocument;
+  productsToAdd?: ExtendedProduct[];
   params: P;
 }
 

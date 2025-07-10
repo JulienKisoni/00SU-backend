@@ -8,11 +8,11 @@ const cartRouter = Router();
 
 /* [POST] */
 cartRouter.post(
-  '/:cartId/addItem',
+  '/:cartId/addItems',
   permissionMiddlewares.hasPermission({ Model: 'cartItems', Action: 'create' }),
   cartMiddlewares.getCart,
-  cartMiddlewares.getProduct,
-  cartCtrl.addCartItem,
+  cartMiddlewares.getProducts,
+  cartCtrl.addCartItems,
 );
 
 /* [GET] */

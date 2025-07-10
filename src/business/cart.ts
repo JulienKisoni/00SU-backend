@@ -1,50 +1,53 @@
 import isEmpty from 'lodash.isempty';
 
-import { GeneralResponse, ICart, IProductDocument } from '../types/models';
+import { ExtendedProduct, GeneralResponse, ICart, IProductDocument } from '../types/models';
 import { createError } from '../middlewares/errors';
 import { HTTP_STATUS_CODES } from '../types/enums';
 import { CartItemModel } from '../models/cartItem';
 import { CartModel } from '../models/Cart';
 
-type AddCartItemBody = API_TYPES.Routes['business']['cart']['addCartItem']['body'];
-interface AddCartItem {
-  body?: AddCartItemBody;
-  product?: IProductDocument;
-  cartId: string;
-}
-type AddProductReturn = Promise<GeneralResponse<{ cart: ICart | null }>>;
-export const addProduct = async ({ body, product, cartId }: AddCartItem): AddProductReturn => {
-  if (!body || isEmpty(body)) {
-    const error = createError({
-      statusCode: HTTP_STATUS_CODES.BAD_REQUEST,
-      message: 'No body associated with the request',
-      publicMessage: 'Please provide valid fields ',
-    });
-    return { error };
-  }
-  if (!product || isEmpty(product)) {
-    const error = createError({
-      statusCode: HTTP_STATUS_CODES.BAD_REQUEST,
-      message: 'No product associated with the request',
-      publicMessage: 'Please provide product to add ',
-    });
-    return { error };
-  }
-
-  const totalPrice = product.unitPrice * body.quantity;
-
+const addProductToCart = async (product: IProductDocument, quantity: number, cartId: string): Promise<string> => {
+  const totalPrice = product.unitPrice * quantity;
+  const body = {
+    quantity,
+    productId: product._id.toString(),
+  };
   const cartItem = await CartItemModel.create({
     ...body,
     totalPrice,
     cartId,
   });
-
   const cartItemId = cartItem._id.toString();
+  return cartItemId;
+};
+
+interface AddCartItems {
+  products?: ExtendedProduct[];
+  cartId: string;
+}
+type AddProductReturn = Promise<GeneralResponse<{ cart: ICart | null }>>;
+export const addProducts = async ({ products, cartId }: AddCartItems): AddProductReturn => {
+  if (!products?.length) {
+    const error = createError({
+      statusCode: HTTP_STATUS_CODES.BAD_REQUEST,
+      message: 'No product(s) associated with the request',
+      publicMessage: 'Please provide product(s) to add ',
+    });
+    return { error };
+  }
+
+  const promises = [];
+
+  for (const product of products) {
+    promises.push(addProductToCart(product, product.qtyToAdd, cartId));
+  }
+
+  const cartItemIds = await Promise.all(promises);
 
   const cart = await CartModel.findByIdAndUpdate(
     cartId,
     {
-      $push: { items: cartItemId },
+      $push: { items: cartItemIds },
     },
     { new: true },
   );
