@@ -77,7 +77,11 @@ export const addCartItems = async (req: ExtendedRequest<AddCartItemBody, ParamsD
   res.status(HTTP_STATUS_CODES.CREATED).json(data);
 };
 
-export const deleteCartItem = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {
+interface DeleteCartItemParams extends ParamsDictionary {
+  cartId: string;
+  cartItemId: string;
+}
+export const deleteCartItem = async (req: ExtendedRequest<undefined, DeleteCartItemParams>, res: Response, next: NextFunction) => {
   const { user } = req;
   const session = req.currentSession;
   if (!user) {
@@ -96,7 +100,7 @@ export const deleteCartItem = async (req: ExtendedRequest<undefined, ParamsDicti
     'any.required': 'Please provide a cartItemId',
     'string.pattern.base': 'Please provide a valid cartItemId',
   };
-  const schema = Joi.object({
+  const schema = Joi.object<DeleteCartItemParams>({
     cartItemId: Joi.string().regex(regex.mongoId).required().messages(cartItemIdMessages),
     cartId: Joi.string().regex(regex.mongoId).required().messages(cartIdMessages),
   });
@@ -118,13 +122,17 @@ export const deleteCartItem = async (req: ExtendedRequest<undefined, ParamsDicti
 };
 
 type UpdateCartItemBody = API_TYPES.Routes['body']['cart']['updateCartItem'];
-type UpdateCartItemParams = { cartItemId: string };
+type UpdateCartItemParams = { cartItemId: string; cartId: string };
 interface UpdateProductSchema {
   params: UpdateCartItemParams;
   body: UpdateCartItemBody | undefined;
 }
 export const updateCartItem = async (req: ExtendedRequest<UpdateCartItemBody, ParamsDictionary>, res: Response, next: NextFunction) => {
   const cartIdMessages: LanguageMessages = {
+    'any.required': 'Please provide a cartId',
+    'string.pattern.base': 'Please provide a valid cartId',
+  };
+  const cartItemIdMessages: LanguageMessages = {
     'any.required': 'Please provide a cartId',
     'string.pattern.base': 'Please provide a valid cartId',
   };
@@ -141,6 +149,7 @@ export const updateCartItem = async (req: ExtendedRequest<UpdateCartItemBody, Pa
   const schema = Joi.object<UpdateProductSchema>({
     params: {
       cartId: Joi.string().regex(regex.mongoId).required().messages(cartIdMessages),
+      cartItemId: Joi.string().regex(regex.mongoId).required().messages(cartItemIdMessages),
     },
     body: {
       quantity: Joi.number().positive().required().messages(qtyMessages),
@@ -157,7 +166,7 @@ export const updateCartItem = async (req: ExtendedRequest<UpdateCartItemBody, Pa
     return handleError({ error, next, currentSession: session });
   }
 
-  const { error: _error } = await cartBusiness.updateCartItem({ body: value.body, cartItemId: value.params.cartItemId });
+  const { error: _error, data } = await cartBusiness.updateCartItem({ body: value.body, cartItemId: value.params.cartItemId });
   if (_error) {
     return handleError({ error: _error, next, currentSession: session });
   }
@@ -165,7 +174,7 @@ export const updateCartItem = async (req: ExtendedRequest<UpdateCartItemBody, Pa
   if (session) {
     await session.endSession();
   }
-  res.status(HTTP_STATUS_CODES.OK).json({});
+  res.status(HTTP_STATUS_CODES.OK).json(data);
 };
 
 export const createCart = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {

@@ -44,7 +44,7 @@ export const getCart = async (req: ExtendedRequest<undefined, ParamsDictionary>,
     cart = await CartModel.findById(cartId).exec();
   }
   if (cartItemId) {
-    cartItem = await CartItemModel.findById(cartId).exec();
+    cartItem = await CartItemModel.findById(cartItemId).exec();
   }
 
   if (cartId && !cart?._id) {

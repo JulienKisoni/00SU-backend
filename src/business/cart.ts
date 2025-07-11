@@ -1,23 +1,30 @@
 import isEmpty from 'lodash.isempty';
+import { Types, PipelineStage } from 'mongoose';
 
-import { ExtendedProduct, GeneralResponse, ICart, IProductDocument } from '../types/models';
+import { CartItemDetails, ExtendedProduct, GeneralResponse, ICart, ICartItem, IProductDocument } from '../types/models';
 import { createError } from '../middlewares/errors';
 import { HTTP_STATUS_CODES } from '../types/enums';
 import { CartItemModel } from '../models/cartItem';
 import { CartModel } from '../models/Cart';
 
-const addProductToCart = async (product: IProductDocument, quantity: number, cartId: string): Promise<string> => {
+const addProductToCart = async (product: IProductDocument, quantity: number, cartId: string): Promise<string | undefined> => {
   const totalPrice = product.unitPrice * quantity;
   const body = {
     quantity,
     productId: product._id.toString(),
   };
-  const cartItem = await CartItemModel.create({
+  let cartItem: ICartItem | null;
+  const _cartItem = await CartItemModel.findOne({ cartId, productId: product._id.toString() }).exec();
+  if (_cartItem?.id) {
+    cartItem = await CartItemModel.findByIdAndUpdate(_cartItem.id, { quantity: _cartItem.quantity + 1 }, { new: true }).exec();
+    return;
+  }
+  cartItem = await CartItemModel.create({
     ...body,
     totalPrice,
     cartId,
   });
-  const cartItemId = cartItem._id.toString();
+  const cartItemId = cartItem?._id?.toString();
   return cartItemId;
 };
 
@@ -25,7 +32,7 @@ interface AddCartItems {
   products?: ExtendedProduct[];
   cartId: string;
 }
-type AddProductReturn = Promise<GeneralResponse<{ cart: ICart | null }>>;
+type AddProductReturn = Promise<GeneralResponse<ICart | null>>;
 export const addProducts = async ({ products, cartId }: AddCartItems): AddProductReturn => {
   if (!products?.length) {
     const error = createError({
@@ -42,16 +49,22 @@ export const addProducts = async ({ products, cartId }: AddCartItems): AddProduc
     promises.push(addProductToCart(product, product.qtyToAdd, cartId));
   }
 
-  const cartItemIds = await Promise.all(promises);
+  const results = await Promise.all(promises);
+  const cartItemIds = results.filter((id) => !!id);
 
-  const cart = await CartModel.findByIdAndUpdate(
+  await CartModel.findByIdAndUpdate(
     cartId,
     {
       $push: { items: cartItemIds },
     },
     { new: true },
   );
-  return { data: { cart } };
+  const { data } = await getCart({ cartId });
+  if (data) {
+    calculateTotalPrices(data);
+    return { data };
+  }
+  return { data: null };
 };
 
 type DeleteOneCartItemPayload = API_TYPES.Routes['params']['cart']['deleteOne'];
@@ -66,7 +79,12 @@ export const deleteCartItem = async ({ cartItemId, cartId }: DeleteOneCartItemPa
     });
     return { error, data: undefined };
   }
-  const cart = await CartModel.findByIdAndUpdate(cartId, { $pull: { items: cartItemId } }, { new: true }).exec();
+  await CartModel.findByIdAndUpdate(cartId, { $pull: { items: cartItemId } }).exec();
+  const { data: cart } = await getCart({ cartId });
+  if (cart) {
+    calculateTotalPrices(cart);
+    return { data: cart };
+  }
   return { error: undefined, data: cart };
 };
 
@@ -75,7 +93,7 @@ interface UpdateProductPayload {
   cartItemId: string;
   body?: UpdateCartItemBody;
 }
-type UpdateProductResponse = Promise<GeneralResponse<undefined>>;
+type UpdateProductResponse = Promise<GeneralResponse<ICart>>;
 export const updateCartItem = async ({ body, cartItemId }: UpdateProductPayload): UpdateProductResponse => {
   if (!body || isEmpty(body)) {
     const error = createError({
@@ -93,6 +111,11 @@ export const updateCartItem = async ({ body, cartItemId }: UpdateProductPayload)
       publicMessage: 'This cart Item does not exist',
     });
     return { error };
+  }
+  const { data } = await getCart({ cartId: cartItem.cartId.toString() });
+  if (data) {
+    calculateTotalPrices(data);
+    return { data };
   }
   return { data: undefined };
 };
@@ -123,11 +146,81 @@ interface GetCartPayload {
 type GetCartResponse = Promise<GeneralResponse<ICart | null>>;
 export const getCart = async ({ storeId, userId, cartId }: GetCartPayload): GetCartResponse => {
   let cart: ICart | null = null;
+  const $match: { [key: string]: Types.ObjectId } = {};
+  const hint: { [key: string]: number } = {};
+  const pipeline: PipelineStage[] = [
+    {
+      $lookup: {
+        from: 'CartItems',
+        localField: 'items',
+        foreignField: '_id',
+        as: 'items',
+      },
+    },
+    {
+      $unwind: {
+        path: '$items',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $lookup: {
+        from: 'Products',
+        localField: 'items.productId',
+        foreignField: '_id',
+        as: 'items.productDetails',
+      },
+    },
+    {
+      $unwind: {
+        path: '$items.productDetails',
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $group: {
+        _id: '$_id',
+        storeId: {
+          $first: '$storeId',
+        },
+        userId: {
+          $first: '$userId',
+        },
+        totalPrices: {
+          $first: '$totalPrices',
+        },
+        createdAt: {
+          $first: '$createdAt',
+        },
+        updatedAt: {
+          $first: '$updatedAt',
+        },
+        items: {
+          $push: '$items',
+        },
+      },
+    },
+  ];
   if (cartId) {
-    cart = await CartModel.findById(cartId).exec();
+    $match._id = new Types.ObjectId(cartId);
+    pipeline.unshift({ $match });
+    const results = await CartModel.aggregate<ICart>(pipeline).hint({ _id: 1 });
+    if (Array.isArray(results) && results.length) {
+      cart = results[0];
+      calculateTotalPrices(cart);
+    }
     return { data: cart || undefined };
   } else if (storeId && userId) {
-    cart = await CartModel.findOne({ storeId, userId }).exec();
+    $match.storeId = new Types.ObjectId(storeId);
+    $match.userId = new Types.ObjectId(userId);
+    hint.storeId = 1;
+    hint.userId = 1;
+    pipeline.unshift({ $match });
+    const results = await CartModel.aggregate<ICart>(pipeline).hint(hint);
+    if (Array.isArray(results) && results.length) {
+      cart = results[0];
+      calculateTotalPrices(cart);
+    }
     return { data: cart || undefined };
   } else {
     const error = createError({
@@ -157,4 +250,15 @@ export const deleteCart = async ({ cartId }: DeleteCartPayload): DeleteCartRespo
     await CartItemModel.deleteMany({ _id: { $in: cart.items } });
   }
   return { error: undefined, data: undefined };
+};
+
+const calculateTotalPrices = (cart: ICart) => {
+  let tempTotalPrice: number = 0;
+  cart.items?.forEach((_) => {
+    const item = _ as CartItemDetails;
+    const totalPrice = item.quantity * item.productDetails.unitPrice;
+    tempTotalPrice += totalPrice;
+    item.totalPrice = totalPrice;
+  });
+  cart.totalPrices = tempTotalPrice;
 };

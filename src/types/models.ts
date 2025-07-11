@@ -123,12 +123,21 @@ export interface ICartItem extends Timestamps {
   __v?: number;
 }
 
+type Cart = Omit<ICart, 'items'>;
+
+export interface CartDetails extends Cart {
+  items: CartItemDetails[];
+}
+export interface CartItemDetails extends ICartItem {
+  productDetails: IProductDocument;
+}
+
 export interface ICart extends Timestamps {
   _id: string | Schema.Types.ObjectId;
   storeId: string | Schema.Types.ObjectId;
   userId: string | Schema.Types.ObjectId;
   totalPrices: number;
-  items?: (string | Schema.Types.ObjectId)[];
+  items?: (string | Schema.Types.ObjectId)[] | CartItemDetails[];
   __v?: number;
 }
 
