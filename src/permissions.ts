@@ -74,7 +74,31 @@ const permissions: UserPermissions = {
 };
 
 export const roleActions: ROLES_PERMISSIONS = {
-  admin: [permissions.teams.all, permissions.users.all],
-  manager: [permissions.users.all],
-  clerk: [permissions.users.all],
+  admin: [
+    permissions.teams.all,
+    permissions.users.all,
+    permissions.stores.all,
+    permissions.products.all,
+    permissions.cartItems.all,
+    permissions.carts.all,
+  ],
+  manager: [
+    permissions.users.all,
+    permissions.stores.read,
+    permissions.products.create,
+    permissions.products.read,
+    permissions.products.update,
+    permissions.cartItems.all,
+    permissions.carts.create,
+    permissions.carts.read,
+    permissions.carts.delete,
+  ],
+  clerk: [
+    permissions.users.all,
+    permissions.stores.read,
+    permissions.products.read,
+    permissions.products.update,
+    permissions.cartItems.read,
+    permissions.carts.read,
+  ],
 };

@@ -28,9 +28,18 @@ namespace API_TYPES {
 
   interface AddStore {
     userId: string;
+    teamId: string;
     active: boolean;
     name: string;
     description: string;
+    picture?: string;
+    address: {
+      line1: string;
+      line2?: string;
+      country: string;
+      state: string;
+      city: string;
+    };
   }
   interface DeleteStore {
     storeId: string;
@@ -40,7 +49,7 @@ namespace API_TYPES {
     quantity: number;
     description: string;
     minQuantity: number;
-    active: boolean;
+    picture?: string;
     unitPrice: number;
   }
 
@@ -48,6 +57,11 @@ namespace API_TYPES {
     login: LoginReq;
     refreshToken: {
       refreshToken: string;
+    };
+    cart: {
+      updateCartItem: {
+        quantity: number;
+      };
     };
     products: {
       updateOne: {
@@ -97,11 +111,20 @@ namespace API_TYPES {
         active?: boolean;
         name?: string;
         description?: string;
+        picture?: string;
+        address?: {
+          line1: string;
+          line2?: string;
+          country: string;
+          state: string;
+          city: string;
+        };
       };
       addStore: AddStore;
       deleteStore: DeleteStore;
       getOne: {
         storeId: string;
+        teamId: string;
       };
     };
     users: {
@@ -122,9 +145,21 @@ namespace API_TYPES {
         body: AddProductBody | undefined;
         owner: string;
         storeId: string;
+        teamId: string;
       };
       getByStoreId: {
         storeId: string;
+        teamId: string;
+      };
+    };
+    cart: {
+      addCartItem: {
+        body: {
+          items: {
+            productId: string;
+            quantity: number;
+          }[];
+        };
       };
     };
     orders: {
@@ -144,6 +179,15 @@ namespace API_TYPES {
   }
 
   interface QueryParams {
+    cart: {
+      addCartItem: {
+        cartId: string;
+      };
+      deleteOne: {
+        cartItemId: string;
+        cartId: string;
+      };
+    };
     products: {
       deleteOne: {
         storeId: string;

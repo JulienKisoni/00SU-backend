@@ -49,35 +49,49 @@ export interface IUserDocument extends Timestamps {
   __v?: number;
 }
 
+export interface IAddress {
+  line1: string;
+  line2?: string;
+  country: string;
+  state: string;
+  city: string;
+}
+
 export interface IStoreDocument extends Timestamps {
   _id: string | Schema.Types.ObjectId;
   name: string;
+  description: string;
+  address: IAddress;
   owner: string | Schema.Types.ObjectId;
+  teamId: string | Schema.Types.ObjectId;
   ownerDetails?: Partial<IUserDocument>;
   products: (string | Schema.Types.ObjectId)[];
-  description: string;
   active: boolean;
+  picture?: string;
   __v?: number;
 }
 
 export interface IProductDocument extends Timestamps {
   _id: string | Schema.Types.ObjectId;
   name: string;
-  quantity: number;
-  storeId: string | Schema.Types.ObjectId;
   description: string;
+  teamId: string | Schema.Types.ObjectId;
+  storeId: string | Schema.Types.ObjectId;
+  quantity: number;
   minQuantity: number;
-  owner: string | Schema.Types.ObjectId;
-  active: boolean;
   unitPrice: number;
-  reviews: (string | Schema.Types.ObjectId)[];
-  reviewDetails?: Partial<IReviewDocument>[];
+  picture?: string;
+  owner: string | Schema.Types.ObjectId;
   __v?: number;
 }
 
 export interface GeneralResponse<T> {
   error?: GenericError;
   data?: T;
+}
+
+export interface ExtendedProduct extends IProductDocument {
+  qtyToAdd: number;
 }
 
 export interface ExtendedRequest<B, P extends ParamsDictionary> extends Request {
@@ -93,7 +107,38 @@ export interface ExtendedRequest<B, P extends ParamsDictionary> extends Request 
   storeId?: string;
   productId?: string;
   currentSession?: mongo.ClientSession;
+  cart?: ICart;
+  cartItem?: ICartItem;
+  product?: IProductDocument;
+  productsToAdd?: ExtendedProduct[];
   params: P;
+}
+
+export interface ICartItem extends Timestamps {
+  _id: string | Schema.Types.ObjectId;
+  cartId: string | Schema.Types.ObjectId;
+  productId: string | Schema.Types.ObjectId;
+  quantity: number;
+  totalPrice: number;
+  __v?: number;
+}
+
+type Cart = Omit<ICart, 'items'>;
+
+export interface CartDetails extends Cart {
+  items: CartItemDetails[];
+}
+export interface CartItemDetails extends ICartItem {
+  productDetails: IProductDocument;
+}
+
+export interface ICart extends Timestamps {
+  _id: string | Schema.Types.ObjectId;
+  storeId: string | Schema.Types.ObjectId;
+  userId: string | Schema.Types.ObjectId;
+  totalPrices: number;
+  items?: (string | Schema.Types.ObjectId)[] | CartItemDetails[];
+  __v?: number;
 }
 
 export interface IReviewDocument extends Timestamps {

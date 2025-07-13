@@ -1,23 +1,17 @@
 import isEmpty from 'lodash.isempty';
 import omit from 'lodash.omit';
 
-import { GeneralResponse, IProductDocument, IReviewDocument, RetrieveOneFilters } from '../types/models';
+import { GeneralResponse, IProductDocument, RetrieveOneFilters } from '../types/models';
 import { createError } from '../middlewares/errors';
 import { HTTP_STATUS_CODES } from '../types/enums';
 import { ProductModel } from '../models/product';
 import { StoreModel } from '../models/store';
-import { transformReview } from './reviews';
 
 const retrieveProduct = async (filters: RetrieveOneFilters<IProductDocument>): Promise<IProductDocument | null> => {
-  const product = (await ProductModel.findOne(filters).populate({ path: 'reviews' }).lean().exec()) as IProductDocument;
+  const product = (await ProductModel.findOne(filters).lean().exec()) as IProductDocument;
   if (!product || product === null) {
     return null;
   }
-  const reviewDetails = product.reviews as unknown as IReviewDocument[];
-  const reviews = reviewDetails.map((review) => review._id.toString());
-
-  product.reviews = reviews;
-  product.reviewDetails = reviewDetails.map((review) => transformReview({ review, excludedFields: ['__v'] }));
 
   return product;
 };
@@ -33,7 +27,7 @@ export const transformProduct = ({ product, excludedFields }: ITransformProduct)
 
 type AddProductPayload = API_TYPES.Routes['business']['products']['add'];
 type AddProductReturn = Promise<GeneralResponse<{ productId: string }>>;
-export const addProduct = async ({ owner, storeId, body }: AddProductPayload): AddProductReturn => {
+export const addProduct = async ({ owner, storeId, body, teamId }: AddProductPayload): AddProductReturn => {
   if (!body || isEmpty(body)) {
     const error = createError({
       statusCode: HTTP_STATUS_CODES.BAD_REQUEST,
@@ -46,6 +40,7 @@ export const addProduct = async ({ owner, storeId, body }: AddProductPayload): A
   const product = await ProductModel.create({
     owner,
     storeId,
+    teamId,
     ...body,
   });
 
@@ -66,8 +61,8 @@ export const getAllProducts = async (): GetAllProductsReturn => {
 
 type GetStoreProductsPayload = API_TYPES.Routes['business']['products']['getByStoreId'];
 type GetStoreProductsResponse = Promise<{ products: Partial<IProductDocument>[] }>;
-export const getStoreProducts = async ({ storeId }: GetStoreProductsPayload): GetStoreProductsResponse => {
-  const response = await ProductModel.find({ storeId, active: true }).lean().exec();
+export const getStoreProducts = async ({ storeId, teamId }: GetStoreProductsPayload): GetStoreProductsResponse => {
+  const response = await ProductModel.find({ storeId, teamId }).lean().exec();
   const products = response.map((product) => transformProduct({ product, excludedFields: ['__v'] }));
   return { products: products || [] };
 };
@@ -107,10 +102,11 @@ export const getOne = async ({ productId }: GetOneProductPayload): GetOneProduct
 type UpdateProductBody = API_TYPES.Routes['body']['products']['updateOne'];
 interface UpdateProductPayload {
   productId: string;
+  teamId: string;
   body: Partial<UpdateProductBody>;
 }
 type UpdateProductResponse = Promise<GeneralResponse<undefined>>;
-export const updateOne = async ({ body, productId }: Partial<UpdateProductPayload>): UpdateProductResponse => {
+export const updateOne = async ({ body, productId, teamId }: Partial<UpdateProductPayload>): UpdateProductResponse => {
   if (!body || isEmpty(body)) {
     const error = createError({
       statusCode: HTTP_STATUS_CODES.BAD_REQUEST,
@@ -119,7 +115,7 @@ export const updateOne = async ({ body, productId }: Partial<UpdateProductPayloa
     });
     return { error };
   }
-  const product = await ProductModel.findByIdAndUpdate(productId, body).exec();
+  const product = await ProductModel.findOneAndUpdate({ _id: productId, teamId }, body).exec();
   if (!product?._id) {
     const error = createError({
       statusCode: HTTP_STATUS_CODES.NOT_FOUND,

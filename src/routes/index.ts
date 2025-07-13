@@ -10,6 +10,7 @@ import { authRouter } from './auth';
 import { teamsRouter } from './team';
 import { HTTP_STATUS_CODES } from '../types/enums';
 import { rateLimitConfig } from '../helpers/constants';
+import { cartRouter } from './cart';
 
 const router = express.Router();
 const limiter = rateLimit(rateLimitConfig);
@@ -31,5 +32,6 @@ router.use('/reviews', reviewRouter);
 router.use('/orders', orderRouters);
 router.use('/auth', limiter, authRouter);
 router.use('/teams', teamsRouter);
+router.use('/carts', cartRouter);
 
 export default router;

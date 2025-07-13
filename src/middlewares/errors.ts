@@ -44,7 +44,6 @@ export const errorHandler = async (error: GenericError, req: ExtendedRequest<unk
     scope.setUser(user);
     Sentry.captureException(exception);
   }); */
-  Logger.info('About to return the error ', { statusCode });
   res.status(statusCode).json({
     errors: [
       {
