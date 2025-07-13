@@ -1,50 +1,83 @@
 import { model, Model, Schema } from 'mongoose';
 
-import { IOrderDocument } from '../types/models';
-import { ORDER_STATUS } from '../types/enums';
+import { CartItem, IOrderDocument, IProductDocument } from '../types/models';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IOrderMethods extends IOrderDocument {}
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IOrderStatics extends Model<IOrderDocument> {}
+
+const productDetailsSchema = new Schema<Partial<IProductDocument>>(
+  {
+    name: {
+      type: String,
+    },
+    description: {
+      type: String,
+    },
+    unitPrice: {
+      type: Number,
+    },
+    picture: {
+      type: Number,
+    },
+  },
+  { _id: false },
+);
+
+const orderItemSchema = new Schema<CartItem>(
+  {
+    quantity: {
+      type: Number,
+      required: true,
+    },
+    productId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      ref: 'Product',
+    },
+    productDetails: {
+      type: productDetailsSchema,
+    },
+  },
+  { _id: false },
+);
 
 const orderSchema = new Schema<IOrderDocument>(
   {
-    owner: {
+    items: [orderItemSchema],
+    totalPrice: {
+      type: Number,
+      required: true,
+    },
+    orderedBy: {
       type: Schema.Types.ObjectId,
       required: true,
       ref: 'User',
     },
-    totalPrice: {
-      type: Number,
+    teamId: {
+      type: Schema.Types.ObjectId,
       required: true,
+      ref: 'Team',
+    },
+    storeId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      ref: 'Store',
     },
     orderNumber: {
       type: String,
       required: true,
     },
-    status: {
-      type: String,
-      required: false,
-      enum: [ORDER_STATUS.COMPLETED, ORDER_STATUS.PENDING],
-      default: ORDER_STATUS.PENDING,
-    },
-    items: [
-      {
-        quantity: {
-          type: Number,
-          required: true,
-        },
-        productId: {
-          type: Schema.Types.ObjectId,
-          required: true,
-          ref: 'Product',
-        },
-      },
-    ],
   },
   {
     timestamps: true,
   },
 );
+
+orderSchema.index({ storeId: 1 });
+orderSchema.index({ teamId: 1 });
+orderSchema.index({ orderNumber: 1 });
 
 export const OrderModel = model<IOrderMethods, IOrderStatics>('Order', orderSchema, 'Orders');

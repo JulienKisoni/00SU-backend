@@ -2,7 +2,6 @@ import { RootFilterQuery, Schema, mongo } from 'mongoose';
 import type { Request } from 'express';
 
 import { GenericError } from '../middlewares/errors';
-import { ORDER_STATUS } from './enums';
 
 export enum USER_ROLES {
   clerk = 'clerk',
@@ -100,7 +99,7 @@ export interface ExtendedRequest<B, P extends ParamsDictionary> extends Request 
   isStoreOwner?: boolean;
   isProductOwner?: boolean;
   isReviewOwner?: boolean;
-  isOrderOwner?: boolean;
+  isTeamOrder?: boolean;
   isTeamOwner?: boolean;
   order?: IOrderDocument;
   hasAlreadyReviewedProduct?: boolean;
@@ -163,10 +162,11 @@ export interface IOrderDocument extends Timestamps {
   __v?: number;
   _id: string | Schema.Types.ObjectId;
   items: CartItem[];
-  owner: string | Schema.Types.ObjectId;
   totalPrice: number;
+  orderedBy: string | Schema.Types.ObjectId;
+  teamId: string | Schema.Types.ObjectId;
+  storeId: string | Schema.Types.ObjectId;
   orderNumber: string;
-  status: ORDER_STATUS;
 }
 
 export type RetrieveOneFilters<T> = RootFilterQuery<T>;

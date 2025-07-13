@@ -81,6 +81,7 @@ export const roleActions: ROLES_PERMISSIONS = {
     permissions.products.all,
     permissions.cartItems.all,
     permissions.carts.all,
+    permissions.orders.all,
   ],
   manager: [
     permissions.users.all,
@@ -89,9 +90,10 @@ export const roleActions: ROLES_PERMISSIONS = {
     permissions.products.read,
     permissions.products.update,
     permissions.cartItems.all,
-    permissions.carts.create,
-    permissions.carts.read,
-    permissions.carts.delete,
+    permissions.carts.all,
+    permissions.orders.create,
+    permissions.orders.read,
+    permissions.orders.update,
   ],
   clerk: [
     permissions.users.all,
@@ -100,5 +102,6 @@ export const roleActions: ROLES_PERMISSIONS = {
     permissions.products.update,
     permissions.cartItems.read,
     permissions.carts.read,
+    permissions.orders.read,
   ],
 };

@@ -94,10 +94,10 @@ namespace API_TYPES {
     orders: {
       add: {
         items: CartItem[];
+        storeId: string;
       };
       updateOne: {
         items?: CartItem[];
-        status?: ORDER_STATUS;
       };
     };
   }
