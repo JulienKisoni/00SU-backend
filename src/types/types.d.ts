@@ -100,6 +100,19 @@ namespace API_TYPES {
         items?: CartItem[];
       };
     };
+    reports: {
+      add: {
+        name: string;
+        description: string;
+        teamId: string;
+        storeID: string;
+        orders: string[];
+      };
+      updateOne: {
+        name?: string;
+        description?: string;
+      };
+    };
   }
 
   interface Business {
@@ -220,6 +233,14 @@ namespace API_TYPES {
       };
       deleteOne: {
         orderId: string;
+      };
+    };
+    reports: {
+      getOne: {
+        reportId: string;
+      };
+      deleteOne: {
+        reportId: string;
       };
     };
     users: {

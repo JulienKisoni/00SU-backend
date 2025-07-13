@@ -100,8 +100,10 @@ export interface ExtendedRequest<B, P extends ParamsDictionary> extends Request 
   isProductOwner?: boolean;
   isReviewOwner?: boolean;
   isTeamOrder?: boolean;
+  isTeamReport?: boolean;
   isTeamOwner?: boolean;
   order?: IOrderDocument;
+  report?: IReportDocument;
   hasAlreadyReviewedProduct?: boolean;
   storeId?: string;
   productId?: string;
@@ -167,6 +169,17 @@ export interface IOrderDocument extends Timestamps {
   teamId: string | Schema.Types.ObjectId;
   storeId: string | Schema.Types.ObjectId;
   orderNumber: string;
+}
+
+export interface IReportDocument extends Timestamps {
+  orders: (string | Schema.Types.ObjectId)[];
+  name: string;
+  description: string;
+  teamId: string | Schema.Types.ObjectId;
+  storeId: string | Schema.Types.ObjectId;
+  generatedBy: string | Schema.Types.ObjectId;
+  _id: string | Schema.Types.ObjectId;
+  __v?: number;
 }
 
 export type RetrieveOneFilters<T> = RootFilterQuery<T>;
