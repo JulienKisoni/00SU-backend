@@ -104,8 +104,7 @@ namespace API_TYPES {
       add: {
         name: string;
         description: string;
-        teamId: string;
-        storeID: string;
+        storeId: string;
         orders: string[];
       };
       updateOne: {

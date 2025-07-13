@@ -4,6 +4,7 @@ import { ExtendedRequest, ParamsDictionary, PERMISSION_LEVEL_KEYS, PermissionKey
 import { createError } from './errors';
 import { HTTP_STATUS_CODES } from '../types/enums';
 import { roleActions } from '../permissions';
+
 interface HasPerm {
   Model: PermissionKey;
   Action: PERMISSION_LEVEL_KEYS;
@@ -11,7 +12,6 @@ interface HasPerm {
 
 export const hasPermission = ({ Model, Action }: HasPerm) => {
   return (req: ExtendedRequest<unknown, ParamsDictionary>, _res: Response, next: NextFunction) => {
-    console.log('Checking permissions');
     const { user } = req;
     const role = user?.profile?.role;
     if (!role) {

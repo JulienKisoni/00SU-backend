@@ -1,10 +1,11 @@
 import omit from 'lodash.omit';
 import isEmpty from 'lodash.isempty';
+import { PipelineStage, Types } from 'mongoose';
 
 import { GeneralResponse, IReportDocument } from '../types/models';
 import { createError } from '../middlewares/errors';
 import { HTTP_STATUS_CODES } from '../types/enums';
-import { ReportModel } from 'src/models/report';
+import { ReportModel } from '../models/report';
 
 type TransformKeys = keyof IReportDocument;
 interface ITransformReport {
@@ -16,13 +17,14 @@ const transformReport = ({ report, excludedFields }: ITransformReport): Partial<
 };
 
 type AddReportBody = API_TYPES.Routes['body']['reports']['add'];
-interface AddOrderParams {
+interface AddReportParams {
   userId?: string;
+  teamId: string;
   body: AddReportBody;
 }
 type AddReportResponse = Promise<GeneralResponse<{ reportId: string }>>;
-export const addReport = async (params: AddOrderParams): AddReportResponse => {
-  const { userId, body } = params;
+export const addReport = async (params: AddReportParams): AddReportResponse => {
+  const { userId, body, teamId } = params;
 
   if (!userId) {
     const error = createError({
@@ -33,14 +35,29 @@ export const addReport = async (params: AddOrderParams): AddReportResponse => {
     return { error };
   }
 
-  const report = await ReportModel.create({ ...body, generatedBy: userId });
+  const report = await ReportModel.create({ ...body, generatedBy: userId, teamId });
 
   return { data: { reportId: report._id.toString() } };
 };
 
 type GetAllReportsResponse = Promise<GeneralResponse<{ reports: Partial<IReportDocument>[] }>>;
 export const getAllReports = async ({ teamId }: { teamId: string }): GetAllReportsResponse => {
-  const results = await ReportModel.find({ teamId }).lean().exec();
+  const pipeline: PipelineStage[] = [
+    {
+      $match: {
+        teamId: new Types.ObjectId(teamId),
+      },
+    },
+    {
+      $lookup: {
+        from: 'Orders',
+        localField: 'orders',
+        foreignField: '_id',
+        as: 'orders',
+      },
+    },
+  ];
+  const results = await ReportModel.aggregate<IReportDocument>(pipeline).hint({ teamId: 1 });
   const reports = results.map((report) => transformReport({ report, excludedFields: ['__v'] }));
   return { data: { reports } };
 };
@@ -61,8 +78,9 @@ export const getOneReport = async (payload: GetOneReportPayload): GetOneOrderRes
     });
     return { error };
   }
-  const newOrder = transformReport({ report, excludedFields: ['__v'] });
-  return { data: { report: newOrder } };
+  const _report = await ReportModel.findById(reportId).populate('orders').lean().exec();
+  const newReport = transformReport({ report: _report as IReportDocument, excludedFields: ['__v'] });
+  return { data: { report: newReport } };
 };
 
 type DeleteOneReportParams = API_TYPES.Routes['params']['reports']['deleteOne'];
@@ -88,13 +106,12 @@ export const deleteOne = async (payload: DeleteOneOrderPayload): DeleteOneReport
 
 type UpdateOneReportBody = API_TYPES.Routes['body']['reports']['updateOne'];
 type UpdateOneReportResponse = Promise<GeneralResponse<{ report: Partial<IReportDocument> }>>;
-interface UpdateOneOrderPayload {
+interface UpdateOneReportPayload {
   body: UpdateOneReportBody | undefined;
   reportId: string;
-  report?: IReportDocument;
 }
-export const updateOne = async (payload: UpdateOneOrderPayload): UpdateOneReportResponse => {
-  const { body, reportId, report } = payload;
+export const updateOne = async (payload: UpdateOneReportPayload): UpdateOneReportResponse => {
+  const { body, reportId } = payload;
 
   if (!body || isEmpty(body)) {
     const error = createError({
@@ -104,27 +121,10 @@ export const updateOne = async (payload: UpdateOneOrderPayload): UpdateOneReport
     });
     return { error };
   }
-  const { description, name } = body;
-  const keys = Object.keys(body);
-
-  if (items && !items?.length) {
-    const error = createError({
-      statusCode: HTTP_STATUS_CODES.BAD_REQUEST,
-      message: 'No items associated with the request',
-      publicMessage: 'Please add valid items to your report',
-    });
-    return { error };
-  }
-
-  const _items = items || report?.items;
-
-  const { data, error } = await prepareOrderPayload({ items: _items, userId, storeId, teamId });
-  if (error) {
-    return { error };
-  }
-  const value = data?.payload;
-  const newOrder = await ReportModel.findByIdAndUpdate(reportId, value, { new: true }).lean().exec();
-  if (!newOrder?._id) {
+  const newReport = await ReportModel.findByIdAndUpdate(reportId, { $set: { ...body } }, { new: true })
+    .lean()
+    .exec();
+  if (!newReport?._id) {
     const error = createError({
       statusCode: HTTP_STATUS_CODES.NOT_FOUND,
       message: `Could not find report (${reportId})`,
@@ -132,6 +132,6 @@ export const updateOne = async (payload: UpdateOneOrderPayload): UpdateOneReport
     });
     return { error };
   }
-  const transformed = transformReport({ report: newOrder, excludedFields: ['__v'] });
+  const transformed = transformReport({ report: newReport, excludedFields: ['__v'] });
   return { data: { report: transformed } };
 };
