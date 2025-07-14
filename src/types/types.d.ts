@@ -112,6 +112,11 @@ namespace API_TYPES {
         description?: string;
       };
     };
+    histories: {
+      add: {
+        quantity: number;
+      };
+    };
   }
 
   interface Business {

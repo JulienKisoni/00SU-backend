@@ -182,6 +182,23 @@ export interface IReportDocument extends Timestamps {
   __v?: number;
 }
 
+export interface IEvolution {
+  date: string;
+  dateKey: string; // will help group Evolution of different products by dateKey (groupBy)
+  quantity: number;
+  collectedBy: string | Schema.Types.ObjectId;
+}
+
+export interface IHistoryDocument extends Timestamps {
+  _id: string | Schema.Types.ObjectId;
+  _v?: number;
+  productId: string | Schema.Types.ObjectId;
+  productName: string;
+  evolutions: IEvolution[];
+  storeId: string | Schema.Types.ObjectId;
+  teamId: string | Schema.Types.ObjectId;
+}
+
 export type RetrieveOneFilters<T> = RootFilterQuery<T>;
 
 export interface ITestUser {
