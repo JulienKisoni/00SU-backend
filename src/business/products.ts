@@ -52,9 +52,13 @@ export const addProduct = async ({ owner, storeId, body, teamId }: AddProductPay
   return { data: product };
 };
 
+interface GetProductsParams {
+  storeId: string;
+  teamId: string;
+}
 type GetAllProductsReturn = Promise<{ products: Partial<IProductDocument>[] }>;
-export const getAllProducts = async (): GetAllProductsReturn => {
-  const response = await ProductModel.find<IProductDocument>({ active: true }).lean().exec();
+export const getAllProducts = async ({ storeId, teamId }: GetProductsParams): GetAllProductsReturn => {
+  const response = await ProductModel.find<IProductDocument>({ storeId, active: true, teamId }).lean().exec();
   const products = response?.map((product) => transformProduct({ product, excludedFields: ['__v'] }));
   return { products: products || [] };
 };

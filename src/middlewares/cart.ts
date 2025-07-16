@@ -12,6 +12,7 @@ import { ProductModel } from '../models/product';
 interface IGetProdMiddleware {
   cartId?: string;
   cartItemId?: string;
+  storeId: string;
 }
 export const getCart = async (req: ExtendedRequest<undefined, ParamsDictionary>, _res: Response, next: NextFunction) => {
   const params = req.params as unknown as IGetProdMiddleware;
@@ -22,10 +23,14 @@ export const getCart = async (req: ExtendedRequest<undefined, ParamsDictionary>,
   const cartItemIdMessages: LanguageMessages = {
     'string.pattern.base': 'Please provide a valid cartItem id',
   };
+  const storeIdMessages: LanguageMessages = {
+    'string.pattern.base': 'Please provide a valid store id',
+  };
 
   const schema = Joi.object<IGetProdMiddleware>({
     cartId: Joi.string().regex(regex.mongoId).messages(cartIdMessages),
     cartItemId: Joi.string().regex(regex.mongoId).messages(cartItemIdMessages),
+    storeId: Joi.string().required().regex(regex.mongoId).messages(storeIdMessages),
   });
 
   const session = req.currentSession;
@@ -35,13 +40,13 @@ export const getCart = async (req: ExtendedRequest<undefined, ParamsDictionary>,
     return handleError({ error, next, currentSession: session });
   }
 
-  const { cartId, cartItemId } = value;
+  const { cartId, cartItemId, storeId } = value;
 
   let cart: ICart | null = null;
   let cartItem: ICartItem | null = null;
 
   if (cartId) {
-    cart = await CartModel.findById(cartId).exec();
+    cart = await CartModel.findOne({ _id: cartId, storeId }).exec();
   }
   if (cartItemId) {
     cartItem = await CartItemModel.findById(cartItemId).exec();

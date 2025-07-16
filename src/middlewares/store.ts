@@ -50,6 +50,17 @@ export const getStore = async (req: ExtendedRequest<undefined, ParamsDictionary>
   const productIdMessages: LanguageMessages = {
     'string.pattern.base': 'Please provide a valid storeId',
   };
+  const teamId = req.user?.teamId.toString();
+
+  if (!teamId) {
+    const error = createError({
+      statusCode: HTTP_STATUS_CODES.BAD_REQUEST,
+      message: `Either team associated with your request`,
+      publicMessage: 'Resource not found',
+    });
+    return next(error);
+  }
+
   const schema = Joi.object<IGetStoreParams>({
     storeId: Joi.string().regex(regex.mongoId).messages(storeIdMessages),
     productId: Joi.string().regex(regex.mongoId).messages(productIdMessages),
@@ -63,7 +74,7 @@ export const getStore = async (req: ExtendedRequest<undefined, ParamsDictionary>
   }
   const { storeId, productId } = value;
   if (storeId) {
-    const store = await StoreModel.findOne({ _id: storeId }).exec();
+    const store = await StoreModel.findOne({ _id: storeId, teamId }).exec();
     if (!store?._id) {
       const error = createError({
         statusCode: HTTP_STATUS_CODES.FORBIDDEN,
@@ -75,7 +86,7 @@ export const getStore = async (req: ExtendedRequest<undefined, ParamsDictionary>
     req.storeId = storeId;
     return next();
   } else if (productId) {
-    const product = await ProductModel.findById(productId).exec();
+    const product = await ProductModel.findOne({ _id: productId, teamId }).exec();
     if (!product?._id) {
       const error = createError({
         statusCode: HTTP_STATUS_CODES.FORBIDDEN,

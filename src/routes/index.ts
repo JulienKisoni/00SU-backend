@@ -12,6 +12,7 @@ import { HTTP_STATUS_CODES } from '../types/enums';
 import { rateLimitConfig } from '../helpers/constants';
 import { cartRouter } from './cart';
 import { reportRouters } from './reports';
+import { graphicRouters } from './graphic';
 
 const router = express.Router();
 const limiter = rateLimit(rateLimitConfig);
@@ -35,5 +36,6 @@ router.use('/reports', reportRouters);
 router.use('/auth', limiter, authRouter);
 router.use('/teams', teamsRouter);
 router.use('/carts', cartRouter);
+router.use('/graphics', graphicRouters);
 
 export default router;

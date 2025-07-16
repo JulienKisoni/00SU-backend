@@ -1,4 +1,4 @@
-import { Response, NextFunction, Request } from 'express';
+import { Response, NextFunction } from 'express';
 import Joi, { LanguageMessages } from 'joi';
 
 import { ExtendedRequest, ParamsDictionary } from '../types/models';
@@ -99,8 +99,19 @@ export const addProduct = async (req: ExtendedRequest<AddProductBody, ParamsDict
   res.status(HTTP_STATUS_CODES.CREATED).json(createdProduct);
 };
 
-export const getAllProducts = async (_req: Request, res: Response) => {
-  const { products } = await productBusiness.getAllProducts();
+export const getAllProducts = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {
+  const storeId = req.storeId?.toString();
+  const teamId = req.user?.teamId.toString();
+  const session = req.currentSession;
+  if (!storeId || !teamId) {
+    const error = createError({
+      statusCode: HTTP_STATUS_CODES.NOT_FOUND,
+      message: `No store|team id (${storeId})`,
+      publicMessage: 'The store does not exist or you are not logged in',
+    });
+    return handleError({ error, next, currentSession: session });
+  }
+  const { products } = await productBusiness.getAllProducts({ storeId, teamId });
   res.status(HTTP_STATUS_CODES.OK).json({ products });
 };
 

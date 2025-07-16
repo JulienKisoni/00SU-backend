@@ -25,16 +25,17 @@ export const isTeamOrder = async (req: ExtendedRequest<undefined, ParamsDictiona
   }
   const { orderId } = value;
   const { _id, teamId } = req.user || ({} as IUserDocument);
+  const storeId = req.storeId?.toString();
   const userId = _id.toString();
-  if (!orderId || !userId || !teamId) {
+  if (!orderId || !userId || !teamId || !storeId) {
     const error = createError({
       statusCode: HTTP_STATUS_CODES.BAD_REQUEST,
-      message: `Either no user, userId or orderId`,
-      publicMessage: 'Ressource not found',
+      message: `Either no user, userId, storeId or orderId`,
+      publicMessage: 'Resource not found',
     });
     return next(error);
   }
-  const order = await OrderModel.findOne({ _id: orderId, teamId }).lean().exec();
+  const order = await OrderModel.findOne({ _id: orderId, teamId, storeId }).lean().exec();
   if (!order?._id) {
     const error = createError({
       statusCode: HTTP_STATUS_CODES.FORBIDDEN,

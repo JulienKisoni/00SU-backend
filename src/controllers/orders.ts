@@ -86,16 +86,17 @@ export const addOrder = async (req: ExtendedRequest<AddOrderBody, ParamsDictiona
 export const getAllOrders = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {
   const user = req.user;
   const teamId = user?.teamId?.toString();
+  const storeId = req.storeId?.toString();
   const session = req.currentSession;
-  if (!teamId) {
+  if (!teamId || !storeId) {
     const error = createError({
       statusCode: HTTP_STATUS_CODES.UNAUTHORIZED,
-      message: 'No team associated with the request',
-      publicMessage: 'Please make sur you are logged in',
+      message: 'No team|store associated with the request',
+      publicMessage: 'Please make sur you are logged in or provide store',
     });
     return handleError({ error, next, currentSession: session });
   }
-  const { data } = await orderBusiness.getAllOrders({ teamId });
+  const { data } = await orderBusiness.getAllOrders({ teamId, storeId });
   res.status(HTTP_STATUS_CODES.OK).json(data);
 };
 

@@ -17,7 +17,7 @@ export const isTeamReport = async (req: ExtendedRequest<undefined, ParamsDiction
   };
   const session = req.currentSession;
   const schema = Joi.object<GetOneOrderParams>({
-    reportId: Joi.string().regex(regex.mongoId).messages(reportIdMessages),
+    reportId: Joi.string().regex(regex.mongoId).required().messages(reportIdMessages),
   });
 
   const { error, value } = schema.validate(params, { stripUnknown: true });
@@ -27,15 +27,16 @@ export const isTeamReport = async (req: ExtendedRequest<undefined, ParamsDiction
   const { reportId } = value;
   const { _id, teamId } = req.user || ({} as IUserDocument);
   const userId = _id.toString();
-  if (!reportId || !userId || !teamId) {
+  const storeId = req.storeId?.toString();
+  if (!reportId || !userId || !teamId || !storeId) {
     const error = createError({
       statusCode: HTTP_STATUS_CODES.BAD_REQUEST,
-      message: `Either no user, userId or reportId`,
+      message: `Either no user, userId, storeId or reportId`,
       publicMessage: 'Resource not found',
     });
     return next(error);
   }
-  const report = await ReportModel.findOne({ _id: reportId, teamId }).lean().exec();
+  const report = await ReportModel.findOne({ _id: reportId, teamId, storeId }).lean().exec();
   if (!report?._id) {
     const error = createError({
       statusCode: HTTP_STATUS_CODES.FORBIDDEN,

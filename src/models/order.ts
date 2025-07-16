@@ -78,6 +78,8 @@ const orderSchema = new Schema<IOrderDocument>(
 
 orderSchema.index({ storeId: 1 });
 orderSchema.index({ teamId: 1 });
+orderSchema.index({ teamId: 1, storeId: 1 });
+orderSchema.index({ _id: 1, teamId: 1, storeId: 1 });
 orderSchema.index({ orderNumber: 1 });
 
 export const OrderModel = model<IOrderMethods, IOrderStatics>('Order', orderSchema, 'Orders');

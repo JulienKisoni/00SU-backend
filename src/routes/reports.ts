@@ -2,15 +2,22 @@ import { Router } from 'express';
 
 import * as reportCtrl from '../controllers/reports';
 import * as reportMiddlewares from '../middlewares/reports';
+import * as storeMiddlewares from '../middlewares/store';
 import * as permissionMiddlewares from '../middlewares/permissions';
 
 const reportRouters = Router();
 
 /* [GET] */
-reportRouters.get('/', permissionMiddlewares.hasPermission({ Model: 'reports', Action: 'read' }), reportCtrl.getAllReports);
 reportRouters.get(
-  '/:reportId',
+  '/stores/:storeId/all',
   permissionMiddlewares.hasPermission({ Model: 'reports', Action: 'read' }),
+  storeMiddlewares.getStore,
+  reportCtrl.getAllReports,
+);
+reportRouters.get(
+  '/stores/:storeId/:reportId',
+  permissionMiddlewares.hasPermission({ Model: 'reports', Action: 'read' }),
+  storeMiddlewares.getStore,
   reportMiddlewares.isTeamReport,
   reportCtrl.getOneReport,
 );
@@ -20,16 +27,18 @@ reportRouters.post('/', permissionMiddlewares.hasPermission({ Model: 'reports', 
 
 /* [DELETE] */
 reportRouters.delete(
-  '/:reportId',
+  '/stores/:storeId/:reportId',
   permissionMiddlewares.hasPermission({ Model: 'reports', Action: 'delete' }),
+  storeMiddlewares.getStore,
   reportMiddlewares.isTeamReport,
   reportCtrl.deleteOne,
 );
 
 /* [PATCH] */
 reportRouters.patch(
-  '/:reportId',
+  '/stores/:storeId/:reportId',
   permissionMiddlewares.hasPermission({ Model: 'reports', Action: 'update' }),
+  storeMiddlewares.getStore,
   reportMiddlewares.isTeamReport,
   reportCtrl.updateOne,
 );

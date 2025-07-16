@@ -49,5 +49,6 @@ graphicSchema.index({ teamId: 1 });
 graphicSchema.index({ teamId: 1, storeId: 1 });
 graphicSchema.index({ generatedBy: 1 });
 graphicSchema.index({ _id: 1, teamId: 1 });
+graphicSchema.index({ _id: 1, teamId: 1, storeId: 1 });
 
 export const GraphicModel = model<IGraphicMethods, IGraphicStatics>('Graphic', graphicSchema, 'Graphics');

@@ -47,5 +47,6 @@ const reportSchema = new Schema<IReportDocument>(
 reportSchema.index({ storeId: 1 });
 reportSchema.index({ teamId: 1 });
 reportSchema.index({ _id: 1, teamId: 1 });
+reportSchema.index({ _id: 1, teamId: 1, storeId: 1 });
 
 export const ReportModel = model<IReportMethods, IReportStatics>('Report', reportSchema, 'Reports');

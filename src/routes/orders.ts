@@ -2,15 +2,22 @@ import { Router } from 'express';
 
 import * as orderCtrl from '../controllers/orders';
 import * as orderMiddlewares from '../middlewares/orders';
+import * as storeMiddlewares from '../middlewares/store';
 import * as permissionMiddlewares from '../middlewares/permissions';
 
 const orderRouters = Router();
 
 /* [GET] */
-orderRouters.get('/', permissionMiddlewares.hasPermission({ Model: 'orders', Action: 'read' }), orderCtrl.getAllOrders);
 orderRouters.get(
-  '/:orderId',
+  '/stores/:storeId/all',
   permissionMiddlewares.hasPermission({ Model: 'orders', Action: 'read' }),
+  storeMiddlewares.getStore,
+  orderCtrl.getAllOrders,
+);
+orderRouters.get(
+  '/stores/:storeId/:orderId',
+  permissionMiddlewares.hasPermission({ Model: 'orders', Action: 'read' }),
+  storeMiddlewares.getStore,
   orderMiddlewares.isTeamOrder,
   orderCtrl.getOneOrder,
 );
@@ -20,16 +27,18 @@ orderRouters.post('/', permissionMiddlewares.hasPermission({ Model: 'orders', Ac
 
 /* [DELETE] */
 orderRouters.delete(
-  '/:orderId',
+  '/stores/:storeId/:orderId',
   permissionMiddlewares.hasPermission({ Model: 'orders', Action: 'delete' }),
+  storeMiddlewares.getStore,
   orderMiddlewares.isTeamOrder,
   orderCtrl.deleteOne,
 );
 
 /* [PATCH] */
 orderRouters.patch(
-  '/:orderId',
+  '/stores/:storeId/:orderId',
   permissionMiddlewares.hasPermission({ Model: 'orders', Action: 'update' }),
+  storeMiddlewares.getStore,
   orderMiddlewares.isTeamOrder,
   orderCtrl.updateOne,
 );

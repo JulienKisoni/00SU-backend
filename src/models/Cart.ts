@@ -72,5 +72,6 @@ const cartSchema = new Schema<ICartSchema>(
 cartSchema.index({ storeId: 1 });
 cartSchema.index({ userId: 1 });
 cartSchema.index({ storeId: 1, userId: 1 });
+cartSchema.index({ _id: 1, storeId: 1 });
 
 export const CartModel = model<ICartMethods, ICartStatics>('Cart', cartSchema, 'Carts');

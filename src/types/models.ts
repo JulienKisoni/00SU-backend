@@ -97,13 +97,15 @@ export interface ExtendedRequest<B, P extends ParamsDictionary> extends Request 
   body: B | undefined;
   user?: IUserDocument;
   isStoreOwner?: boolean;
-  isProductOwner?: boolean;
+  isTeamProduct?: boolean;
   isReviewOwner?: boolean;
   isTeamOrder?: boolean;
   isTeamReport?: boolean;
   isTeamOwner?: boolean;
+  isTeamGraphic?: boolean;
   order?: IOrderDocument;
   report?: IReportDocument;
+  graphic?: IGraphicDocument;
   hasAlreadyReviewedProduct?: boolean;
   storeId?: string;
   productId?: string;

@@ -271,7 +271,13 @@ namespace API_TYPES {
       };
     };
     graphics: {
+      getOne: {
+        graphicId: string;
+      };
       deleteOne: {
+        graphicId: string;
+      };
+      updateOne: {
         graphicId: string;
       };
     };

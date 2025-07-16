@@ -131,8 +131,8 @@ export const addOrder = async (params: AddOrderParams): AddOrderResponse => {
 };
 
 type GetAllOrdersResponse = Promise<GeneralResponse<{ orders: Partial<IOrderDocument>[] }>>;
-export const getAllOrders = async ({ teamId }: { teamId: string }): GetAllOrdersResponse => {
-  const results = await OrderModel.find({ teamId }).lean().exec();
+export const getAllOrders = async ({ teamId, storeId }: { teamId: string; storeId: string }): GetAllOrdersResponse => {
+  const results = await OrderModel.find({ teamId, storeId }).lean().exec();
   const orders = results.map((order) => transformOrder({ order, excludedFields: ['__v'] }));
   return { data: { orders } };
 };

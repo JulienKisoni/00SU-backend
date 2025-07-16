@@ -46,7 +46,7 @@ storesRouter.delete(
 storesRouter.delete(
   '/:storeId/products/:productId',
   permissionMiddlewares.hasPermission({ Model: 'products', Action: 'delete' }),
-  productMiddlewares.isProductOwner,
+  productMiddlewares.isTeamProduct,
   productCtrl.deleteOne,
 );
 

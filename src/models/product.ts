@@ -94,10 +94,11 @@ const productSchema = new Schema<IProductSchema>(
 );
 
 productSchema.index({ teamId: 1 });
+productSchema.index({ _id: 1, teamId: 1 });
 productSchema.index({ storeId: 1 });
 productSchema.index({ owner: 1 });
 productSchema.index({ name: 1 });
 productSchema.index({ storeId: 1, active: 1, teamId: 1 });
-productSchema.index({ _id: 1, storeId: 1 });
+productSchema.index({ _id: 1, storeId: 1, teamId: 1 });
 
 export const ProductModel = model<IProductMethods, IProductStatics>('Product', productSchema, 'Products');
