@@ -116,6 +116,13 @@ namespace API_TYPES {
       add: {
         quantity: number;
       };
+      updateOne: {
+        evolution: {
+          date: string;
+          dateKey: string;
+          quantity: number;
+        };
+      };
     };
   }
 

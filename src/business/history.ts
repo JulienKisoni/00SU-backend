@@ -1,24 +1,22 @@
 import omit from 'lodash.omit';
-import isEmpty from 'lodash.isempty';
-import { PipelineStage, Types } from 'mongoose';
+import cloneDeep from 'lodash.clonedeep';
 
-import { GeneralResponse, IEvolution, IHistoryDocument, IProductDocument, IReportDocument } from '../types/models';
-import { createError } from '../middlewares/errors';
+import { GeneralResponse, IEvolution, IProductDocument, IHistoryDocument } from '../types/models';
+import { createError, GenericError } from '../middlewares/errors';
 import { HTTP_STATUS_CODES } from '../types/enums';
-import { ReportModel } from '../models/report';
-import { HistoryModel } from 'src/models/History';
+import { HistoryModel } from '../models/History';
 
-type TransformKeys = keyof IReportDocument;
-interface ITransformReport {
+type TransformKeys = keyof IHistoryDocument;
+interface ITransformHistory {
   excludedFields: TransformKeys[];
-  report: IReportDocument;
+  history: IHistoryDocument;
 }
-const transformReport = ({ report, excludedFields }: ITransformReport): Partial<IReportDocument> => {
-  return omit(report, excludedFields);
+const transformHistory = ({ history, excludedFields }: ITransformHistory): Partial<IHistoryDocument> => {
+  return omit(history, excludedFields);
 };
 
 type AddHistoryBody = API_TYPES.Routes['body']['histories']['add'];
-interface AddReportParams {
+interface AddHistoryParams {
   userId?: string;
   teamId?: string;
   storeId?: string;
@@ -26,7 +24,7 @@ interface AddReportParams {
   body: AddHistoryBody;
 }
 type AddHistoryResponse = Promise<GeneralResponse<string>>;
-export const addHistory = async (params: AddReportParams): AddHistoryResponse => {
+export const addHistory = async (params: AddHistoryParams): AddHistoryResponse => {
   const { userId, body, teamId, storeId, product } = params;
 
   if (!userId || !teamId || !storeId || !product) {
@@ -50,28 +48,6 @@ export const addHistory = async (params: AddReportParams): AddHistoryResponse =>
   return { data: history._id.toString() };
 };
 
-type GetAllReportsResponse = Promise<GeneralResponse<{ reports: Partial<IReportDocument>[] }>>;
-export const getAllReports = async ({ teamId }: { teamId: string }): GetAllReportsResponse => {
-  const pipeline: PipelineStage[] = [
-    {
-      $match: {
-        teamId: new Types.ObjectId(teamId),
-      },
-    },
-    {
-      $lookup: {
-        from: 'Orders',
-        localField: 'orders',
-        foreignField: '_id',
-        as: 'orders',
-      },
-    },
-  ];
-  const results = await ReportModel.aggregate<IReportDocument>(pipeline).hint({ teamId: 1 });
-  const reports = results.map((report) => transformReport({ report, excludedFields: ['__v'] }));
-  return { data: { reports } };
-};
-
 const generateDateKey = (date: Date): string => {
   const y = date.getFullYear();
   const m = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -80,9 +56,6 @@ const generateDateKey = (date: Date): string => {
   return fullDate;
 };
 
-const isNewDateKey = (dateKey: string, evolutions: IEvolution[]): boolean => {
-  return !evolutions.some((evolution) => evolution.dateKey === dateKey);
-};
 const pushEvolution = (quantity: number, history: Partial<IHistoryDocument>, userId: string): void => {
   const date = history.createdAt ? new Date(history.createdAt) : new Date();
   const dateKey = generateDateKey(date);
@@ -97,18 +70,6 @@ const pushEvolution = (quantity: number, history: Partial<IHistoryDocument>, use
   }
   history.evolutions.push(evolution);
 };
-const unshiftEvolution = (quantity: number, date: Date, userId: string, evolutions: IEvolution[]): void => {
-  const dateKey = generateDateKey(date);
-  if (isNewDateKey(dateKey, evolutions)) {
-    const evolution: IEvolution = {
-      date: date.toISOString(),
-      dateKey,
-      quantity,
-      collectedBy: userId,
-    };
-    evolutions.unshift(evolution);
-  }
-};
 interface GetOneHistoryPayload {
   productId: string;
   storeId: string;
@@ -121,55 +82,117 @@ export const getOneByProductId = async (payload: GetOneHistoryPayload): GetOneHi
   return { data: history };
 };
 
-type DeleteOneReportParams = API_TYPES.Routes['params']['reports']['deleteOne'];
-type DeleteOneReportResponse = Promise<GeneralResponse<undefined>>;
-interface DeleteOneOrderPayload {
-  params: DeleteOneReportParams;
-  report?: IReportDocument;
+type UpdateOneHistoryBody = API_TYPES.Routes['body']['histories']['updateOne'];
+type UpdateOneHistoryResponse = Promise<GeneralResponse<Partial<IHistoryDocument>>>;
+interface UpdateOneReportPayload {
+  body: UpdateOneHistoryBody | undefined;
+  history: IHistoryDocument;
+  userId?: string;
 }
-export const deleteOne = async (payload: DeleteOneOrderPayload): DeleteOneReportResponse => {
-  const { params, report } = payload;
-  const { reportId } = params;
-  if (!report || report._id.toString() !== reportId) {
+export const updateOne = async (payload: UpdateOneReportPayload): UpdateOneHistoryResponse => {
+  const { body, history, userId } = payload;
+  if (!userId || !body) {
     const error = createError({
-      statusCode: HTTP_STATUS_CODES.NOT_FOUND,
-      message: `Could not find corresponding report (${reportId})`,
-      publicMessage: 'This report does not exist',
+      statusCode: HTTP_STATUS_CODES.STH_WENT_WRONG,
+      message: 'Missing required data with the request',
+      publicMessage: 'Please, make sure you are logged in',
     });
     return { error };
   }
-  await ReportModel.findByIdAndDelete(reportId);
-  return { error: undefined, data: undefined };
+
+  const { evolution } = body;
+  const actualHistory = cloneDeep(history);
+
+  const newEvolution: IEvolution = {
+    ...evolution,
+    collectedBy: userId,
+  };
+  const keyIndex = actualHistory.evolutions.findIndex((evolution) => evolution.dateKey === evolution.dateKey);
+  if (keyIndex !== -1) {
+    actualHistory.evolutions.splice(keyIndex, 1, newEvolution);
+    // Update
+  } else {
+    // Push
+    actualHistory.evolutions.push(newEvolution);
+  }
+  const update: Partial<IHistoryDocument> = {
+    ...actualHistory,
+  };
+  delete update._id;
+  delete update.createdAt;
+  delete update.updatedAt;
+
+  const newHistory = await HistoryModel.findByIdAndUpdate(history._id, { $set: { ...update } }, { new: true }).exec();
+  if (!newHistory?._id) {
+    const error = createError({
+      statusCode: HTTP_STATUS_CODES.NOT_FOUND,
+      message: `Could not find history (${history._id})`,
+      publicMessage: 'This history does not exist',
+    });
+    return { error };
+  }
+  const transformed = transformHistory({ history: newHistory, excludedFields: ['_v'] });
+  return { data: transformed };
 };
 
-type UpdateOneReportBody = API_TYPES.Routes['body']['reports']['updateOne'];
-type UpdateOneReportResponse = Promise<GeneralResponse<{ report: Partial<IReportDocument> }>>;
-interface UpdateOneReportPayload {
-  body: UpdateOneReportBody | undefined;
-  reportId: string;
+interface WriteHistory {
+  userId?: string;
+  storeId?: string;
+  teamId?: string;
+  product?: IProductDocument;
+  quantity: number;
 }
-export const updateOne = async (payload: UpdateOneReportPayload): UpdateOneReportResponse => {
-  const { body, reportId } = payload;
 
-  if (!body || isEmpty(body)) {
+export const writeHistory = async ({
+  userId,
+  storeId,
+  teamId,
+  product,
+  quantity,
+}: WriteHistory): Promise<GeneralResponse<Partial<IHistoryDocument> | string>> => {
+  let error: GenericError | undefined;
+  let data: Partial<IHistoryDocument> | undefined | string;
+  if (!userId || !teamId || !storeId || !product || isNaN(quantity)) {
     const error = createError({
-      statusCode: HTTP_STATUS_CODES.BAD_REQUEST,
-      message: 'No body associated with the request',
-      publicMessage: 'Please add valid fields to your request body',
+      statusCode: HTTP_STATUS_CODES.STH_WENT_WRONG,
+      message: 'Missing required data with the request',
+      publicMessage: 'Please, make sure you are logged in',
     });
     return { error };
   }
-  const newReport = await ReportModel.findByIdAndUpdate(reportId, { $set: { ...body } }, { new: true })
-    .lean()
-    .exec();
-  if (!newReport?._id) {
-    const error = createError({
-      statusCode: HTTP_STATUS_CODES.NOT_FOUND,
-      message: `Could not find report (${reportId})`,
-      publicMessage: 'This report does not exist',
-    });
-    return { error };
+  const { error: error1, data: history } = await getOneByProductId({ productId: product._id.toString(), storeId, teamId });
+
+  if (history && !error1) {
+    const date = new Date();
+    const payload: UpdateOneReportPayload = {
+      body: {
+        evolution: {
+          date: date.toISOString(),
+          dateKey: generateDateKey(date),
+          quantity,
+        },
+      },
+      history,
+      userId,
+    };
+    const { data: data1, error: error2 } = await updateOne(payload);
+    data = data1;
+    error = error2;
+  } else if (!history && !error1) {
+    const params: AddHistoryParams = {
+      userId,
+      teamId,
+      storeId,
+      product,
+      body: {
+        quantity,
+      },
+    };
+    const { data: data2, error: error3 } = await addHistory(params);
+    data = data2;
+    error = error3;
+  } else {
+    error = error1;
   }
-  const transformed = transformReport({ report: newReport, excludedFields: ['__v'] });
-  return { data: { report: transformed } };
+  return { error, data };
 };

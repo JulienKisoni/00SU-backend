@@ -25,6 +25,7 @@ productsRouter.patch(
   '/:productId',
   permissionMiddlewares.hasPermission({ Model: 'products', Action: 'update' }),
   storeMiddlewares.getStore,
+  productMiddlewares.getProduct,
   productCtrl.updateOne,
 );
 

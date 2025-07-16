@@ -105,7 +105,7 @@ interface UpdateProductPayload {
   teamId: string;
   body: Partial<UpdateProductBody>;
 }
-type UpdateProductResponse = Promise<GeneralResponse<undefined>>;
+type UpdateProductResponse = Promise<GeneralResponse<IProductDocument>>;
 export const updateOne = async ({ body, productId, teamId }: Partial<UpdateProductPayload>): UpdateProductResponse => {
   if (!body || isEmpty(body)) {
     const error = createError({
@@ -115,7 +115,7 @@ export const updateOne = async ({ body, productId, teamId }: Partial<UpdateProdu
     });
     return { error };
   }
-  const product = await ProductModel.findOneAndUpdate({ _id: productId, teamId }, body).exec();
+  const product = await ProductModel.findOneAndUpdate({ _id: productId, teamId }, body, { new: true }).exec();
   if (!product?._id) {
     const error = createError({
       statusCode: HTTP_STATUS_CODES.NOT_FOUND,
@@ -124,5 +124,5 @@ export const updateOne = async ({ body, productId, teamId }: Partial<UpdateProdu
     });
     return { error };
   }
-  return { data: undefined };
+  return { data: product, error: undefined };
 };

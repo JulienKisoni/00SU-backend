@@ -5,6 +5,7 @@ import { ExtendedRequest, ParamsDictionary } from '../types/models';
 import { regex } from '../helpers/constants';
 import { createError, handleError } from '../middlewares/errors';
 import * as productBusiness from '../business/products';
+import * as historyBusiness from '../business/history';
 import { HTTP_STATUS_CODES } from '../types/enums';
 
 type AddProductBody = API_TYPES.Routes['business']['products']['add']['body'];
@@ -206,11 +207,18 @@ export const updateOne = async (req: ExtendedRequest<UpdateProductBody, ParamsDi
   };
 
   const session = req.currentSession;
-  const { user } = req;
+  const { user, product } = req;
   if (!user) {
     const err = createError({ statusCode: HTTP_STATUS_CODES.FORBIDDEN, message: 'No user associated with the request found' });
     return handleError({ error: err, next, currentSession: session });
   }
+  if (!product) {
+    const err = createError({ statusCode: HTTP_STATUS_CODES.FORBIDDEN, message: 'No product associated with the request found' });
+    return handleError({ error: err, next, currentSession: session });
+  }
+  const userId = user._id.toString();
+  const teamId = user.teamId.toString();
+  const storeId = product.storeId.toString();
   const schema = Joi.object<UpdateProductSchema>({
     params: {
       productId: Joi.string().regex(regex.mongoId).required().messages(productIdMessages),
@@ -235,13 +243,34 @@ export const updateOne = async (req: ExtendedRequest<UpdateProductBody, ParamsDi
     return handleError({ error, next, currentSession: session });
   }
 
-  const { error: _error } = await productBusiness.updateOne({ productId: value.params.productId, body: value.body, teamId: user.teamId.toString() });
+  const { error: _error, data: updatedProduct } = await productBusiness.updateOne({
+    productId: value.params.productId,
+    body: value.body,
+    teamId: user.teamId.toString(),
+  });
   if (_error) {
     return handleError({ error: _error, next, currentSession: session });
   }
 
-  if (session) {
-    await session.endSession();
+  if (req.body?.quantity && updatedProduct) {
+    const { error: __error, data } = await historyBusiness.writeHistory({
+      userId,
+      storeId,
+      teamId,
+      quantity: updatedProduct?.quantity || NaN,
+      product: updatedProduct,
+    });
+    if (__error) {
+      return handleError({ error: __error, next, currentSession: session });
+    }
+    res.status(HTTP_STATUS_CODES.OK).json(data);
+    if (session) {
+      await session.endSession();
+    }
+  } else {
+    if (session) {
+      await session.endSession();
+    }
+    res.status(HTTP_STATUS_CODES.OK).json({});
   }
-  res.status(HTTP_STATUS_CODES.OK).json({});
 };
