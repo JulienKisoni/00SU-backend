@@ -124,6 +124,17 @@ namespace API_TYPES {
         };
       };
     };
+    graphics: {
+      add: {
+        productsIDs: string[];
+        name: string;
+        description: string;
+      };
+      updateOne: {
+        name?: string;
+        description?: string;
+      };
+    };
   }
 
   interface Business {
@@ -257,6 +268,11 @@ namespace API_TYPES {
     users: {
       getByTeam: {
         email?: string;
+      };
+    };
+    graphics: {
+      deleteOne: {
+        graphicId: string;
       };
     };
   }

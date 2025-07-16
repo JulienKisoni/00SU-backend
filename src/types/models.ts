@@ -191,12 +191,22 @@ export interface IEvolution {
 
 export interface IHistoryDocument extends Timestamps {
   _id: string | Schema.Types.ObjectId;
-  _v?: number;
+  __v?: number;
   productId: string | Schema.Types.ObjectId;
   productName: string;
   evolutions: IEvolution[];
   storeId: string | Schema.Types.ObjectId;
   teamId: string | Schema.Types.ObjectId;
+}
+export interface IGraphicDocument extends Timestamps {
+  _id: string | Schema.Types.ObjectId;
+  __v?: number;
+  histories: (string | Schema.Types.ObjectId | IHistoryDocument)[];
+  name: string;
+  description: string;
+  storeId: string | Schema.Types.ObjectId;
+  teamId: string | Schema.Types.ObjectId;
+  generatedBy: string | Schema.Types.ObjectId;
 }
 
 export type RetrieveOneFilters<T> = RootFilterQuery<T>;

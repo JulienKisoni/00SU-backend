@@ -26,7 +26,7 @@ export const transformProduct = ({ product, excludedFields }: ITransformProduct)
 };
 
 type AddProductPayload = API_TYPES.Routes['business']['products']['add'];
-type AddProductReturn = Promise<GeneralResponse<{ productId: string }>>;
+type AddProductReturn = Promise<GeneralResponse<IProductDocument>>;
 export const addProduct = async ({ owner, storeId, body, teamId }: AddProductPayload): AddProductReturn => {
   if (!body || isEmpty(body)) {
     const error = createError({
@@ -49,7 +49,7 @@ export const addProduct = async ({ owner, storeId, body, teamId }: AddProductPay
   await StoreModel.findByIdAndUpdate(storeId, {
     $push: { products: productId },
   });
-  return { data: { productId } };
+  return { data: product };
 };
 
 type GetAllProductsReturn = Promise<{ products: Partial<IProductDocument>[] }>;

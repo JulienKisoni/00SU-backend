@@ -41,11 +41,12 @@ export const addReport = async (params: AddReportParams): AddReportResponse => {
 };
 
 type GetAllReportsResponse = Promise<GeneralResponse<{ reports: Partial<IReportDocument>[] }>>;
-export const getAllReports = async ({ teamId }: { teamId: string }): GetAllReportsResponse => {
+export const getAllReports = async ({ teamId, storeId }: { teamId: string; storeId: string }): GetAllReportsResponse => {
   const pipeline: PipelineStage[] = [
     {
       $match: {
         teamId: new Types.ObjectId(teamId),
+        storeId: new Types.ObjectId(storeId),
       },
     },
     {

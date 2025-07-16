@@ -131,7 +131,7 @@ export const updateOne = async (payload: UpdateOneReportPayload): UpdateOneHisto
     });
     return { error };
   }
-  const transformed = transformHistory({ history: newHistory, excludedFields: ['_v'] });
+  const transformed = transformHistory({ history: newHistory, excludedFields: ['__v'] });
   return { data: transformed };
 };
 

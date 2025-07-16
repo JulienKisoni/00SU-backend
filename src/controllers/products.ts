@@ -70,21 +70,33 @@ export const addProduct = async (req: ExtendedRequest<AddProductBody, ParamsDict
   if (error) {
     return handleError({ error, next, currentSession: session });
   }
-  const owner = user._id?.toString() || '';
-  const { error: _error, data } = await productBusiness.addProduct({
-    owner,
-    storeId: value.params.storeId,
+  const userId = user._id?.toString() || '';
+  const storeId = value.params.storeId;
+  const teamId = user.teamId.toString();
+  const { error: _error, data: createdProduct } = await productBusiness.addProduct({
+    owner: userId,
+    storeId,
     body: value.body,
-    teamId: user.teamId.toString(),
+    teamId,
   });
   if (_error) {
     return handleError({ error: _error, next, currentSession: session });
   }
 
+  const { error: __error } = await historyBusiness.writeHistory({
+    userId,
+    storeId,
+    teamId,
+    quantity: createdProduct?.quantity || NaN,
+    product: createdProduct,
+  });
+  if (__error) {
+    return handleError({ error: __error, next, currentSession: session });
+  }
   if (session) {
     await session.endSession();
   }
-  res.status(HTTP_STATUS_CODES.CREATED).json(data);
+  res.status(HTTP_STATUS_CODES.CREATED).json(createdProduct);
 };
 
 export const getAllProducts = async (_req: Request, res: Response) => {

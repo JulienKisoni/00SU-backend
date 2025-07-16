@@ -73,7 +73,19 @@ export const getAllReports = async (req: ExtendedRequest<undefined, ParamsDictio
     });
     return handleError({ error, next, currentSession: session });
   }
-  const { data } = await reportBusiness.getAllReports({ teamId });
+
+  const storeIdMessages: LanguageMessages = {
+    'string.pattern.base': 'Please provide a valid storeId',
+  };
+
+  const schema = Joi.object<{ storeId: string }>({
+    storeId: Joi.string().regex(regex.mongoId).required().messages(storeIdMessages),
+  });
+  const { error, value } = schema.validate(req.params, { stripUnknown: true });
+  if (error) {
+    return handleError({ error, next, currentSession: session });
+  }
+  const { data } = await reportBusiness.getAllReports({ teamId, storeId: value.storeId });
   res.status(HTTP_STATUS_CODES.OK).json(data);
 };
 
