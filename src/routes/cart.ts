@@ -28,7 +28,7 @@ cartRouter.get(
 
 /* [DELETE] */
 cartRouter.delete(
-  '/:cartId/cartItems/:cartItemId',
+  '/:cartId/stores/:storeId/cartItems/:cartItemId',
   permissionMiddlewares.hasPermission({ Model: 'cartItems', Action: 'delete' }),
   storeMiddlewares.getStore,
   cartCtrl.deleteCartItem,
@@ -43,7 +43,7 @@ cartRouter.delete(
 
 /* [PATCH] */
 cartRouter.patch(
-  '/:cartId/cartItems/:cartItemId',
+  '/:cartId/stores/:storeId/cartItems/:cartItemId',
   permissionMiddlewares.hasPermission({ Model: 'cartItems', Action: 'update' }),
   cartMiddlewares.getCart,
   cartMiddlewares.getProduct,

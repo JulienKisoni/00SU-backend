@@ -1,5 +1,6 @@
 import isEmpty from 'lodash.isempty';
 import { Types, PipelineStage } from 'mongoose';
+import cloneDeep from 'lodash.clonedeep';
 
 import { CartItemDetails, ExtendedProduct, GeneralResponse, ICart, ICartItem, IProductDocument } from '../types/models';
 import { createError } from '../middlewares/errors';
@@ -254,11 +255,15 @@ export const deleteCart = async ({ cartId }: DeleteCartPayload): DeleteCartRespo
 
 const calculateTotalPrices = (cart: ICart) => {
   let tempTotalPrice: number = 0;
-  cart.items?.forEach((_) => {
-    const item = _ as CartItemDetails;
-    const totalPrice = item.quantity * item.productDetails.unitPrice;
-    tempTotalPrice += totalPrice;
-    item.totalPrice = totalPrice;
-  });
+  const data = cloneDeep(cart.items);
+  cart.items = data
+    ?.filter((item) => !isEmpty(item))
+    .map((_) => {
+      const item = _ as CartItemDetails;
+      const totalPrice = item.quantity * item.productDetails.unitPrice;
+      tempTotalPrice += totalPrice;
+      item.totalPrice = totalPrice;
+      return item;
+    });
   cart.totalPrices = tempTotalPrice;
 };
