@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, test } from '@jest/globals';
 import should from 'should';
 
@@ -14,7 +15,7 @@ describe('Product business logics', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
-  const products = [
+  const products: IProductDocument[] = [
     {
       _id: FAKE_ID,
       name: 'the new name',
@@ -22,12 +23,11 @@ describe('Product business logics', () => {
       storeId: FAKE_ID,
       description: 'This is the new description',
       minQuantity: 3,
+      teamId: FAKE_ID,
       owner: FAKE_ID,
-      active: true,
       unitPrice: 500,
-      createdAt: '2024-10-17T01:56:19.132Z',
-      updatedAt: '2024-10-19T17:40:44.797Z',
-      reviews: [FAKE_ID],
+      createdAt: new Date('2024-10-17T01:56:19.132Z'),
+      updatedAt: new Date('2024-10-19T17:40:44.797Z'),
     },
     {
       _id: FAKE_ID2,
@@ -36,11 +36,11 @@ describe('Product business logics', () => {
       storeId: FAKE_ID2,
       description: 'Product #1 description #1',
       minQuantity: 3,
-      owner: FAKE_ID2,
-      active: true,
+      teamId: FAKE_ID,
+      owner: FAKE_ID,
       unitPrice: 50,
-      createdAt: '2024-10-17T01:56:47.072Z',
-      updatedAt: '2024-10-17T01:56:47.072Z',
+      createdAt: new Date('2024-10-17T01:56:47.072Z'),
+      updatedAt: new Date('2024-10-17T01:56:47.072Z'),
     },
   ];
   test('Should [SUCCESS] get all products ', async () => {
@@ -52,7 +52,7 @@ describe('Product business logics', () => {
         }),
       };
     });
-    const response = await getAllProducts();
+    const response = await getAllProducts({ storeId: FAKE_ID2, teamId: FAKE_ID });
     response.products.forEach((product) => {
       validateProduct(product);
     });
@@ -67,7 +67,7 @@ describe('Product business logics', () => {
         }),
       };
     });
-    const response = await getAllProducts();
+    const response = await getAllProducts({ storeId: FAKE_ID2, teamId: FAKE_ID });
     expect(mockedFind).toHaveBeenCalledTimes(1);
     expect(response.products).toHaveLength(0);
   });
@@ -80,7 +80,7 @@ const validateProduct = (product: Partial<IProductDocument>) => {
   should(product).have.property('description');
   should(product).have.property('minQuantity');
   should(product).have.property('owner');
-  should(product).have.property('active');
+  should(product).have.property('teamId');
   should(product).have.property('unitPrice');
   should(product).have.property('createdAt');
   should(product).have.property('updatedAt');

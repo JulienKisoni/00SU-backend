@@ -16,6 +16,7 @@
     "build": "yarn build:clean && tsc -p .",
     "start:test-server": "yarn build && yarn copyFiles && yarn start",
     "test:units": "jest --detectOpenHandles",
+    "test:units:one": "jest units-tests/specs/orders.spec.ts --detectOpenHandles",
     "test:integration": "cross-env TS_NODE_PROJECT='tests/tsconfig.json' mocha",
     "test:e2e": "cross-env TS_NODE_PROJECT='./e2e/tsconfig.json' mocha --config 'e2e/.mocharc.json'",
     "prettier": "prettier --write src/**/*.ts",

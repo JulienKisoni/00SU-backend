@@ -14,8 +14,8 @@ describe('Order business logics', () => {
     const day = date.getDate().toString();
     const orderNumber = generateOrderNumber();
     const [_D, _M, _Y, _ID] = orderNumber.split('-');
-    expect(_ID).toBeDefined;
-    should(_ID).be.String;
+    expect(_ID).toBeDefined();
+    should(_ID).be.String();
     expect(_D).toEqual(day);
     expect(_M).toEqual(month);
     expect(_Y).toEqual(year);
