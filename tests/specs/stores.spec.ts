@@ -16,7 +16,7 @@ const testUser: ITestUser = {};
 let store: IStoreDocument | undefined;
 let server: Server | undefined;
 
-describe.only('STORES', () => {
+describe('STORES', () => {
   before(async () => {
     server = await startServer('8000', app);
     const res = await seedDatabase();

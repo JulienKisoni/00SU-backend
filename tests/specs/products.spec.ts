@@ -5,22 +5,23 @@ import { type Server } from 'http';
 import { app } from '../../src/app';
 import { startServer } from '../../src/utils/server';
 import { clearDatabase, CONSTANTS, seedDatabase } from '../helpers';
-import { IProductDocument, IReviewDocument, ITestUser } from '../../src/types/models';
+import { IProductDocument, IStoreDocument, ITestUser } from '../../src/types/models';
 import { login } from '../helpers/users';
-import { validateReview } from './reviews.spec';
 
 const { invalidMongoId, nonExistingMongoId } = CONSTANTS;
 
 const baseURL = '/v1/products';
 const testUser: ITestUser = {};
 let product: IProductDocument | undefined;
+let store: IStoreDocument | undefined;
 let server: Server | undefined;
 
-describe('PRODUCTS', () => {
+describe.only('PRODUCTS', () => {
   before(async () => {
     server = await startServer('8000', app);
     const res = await seedDatabase();
     product = res.product;
+    store = res.store;
     const tokens = await login();
     if (tokens) {
       testUser.tokens = tokens;
@@ -36,13 +37,15 @@ describe('PRODUCTS', () => {
   });
 
   describe('[GET] /products', () => {
-    const url = baseURL;
-
     it('[401] Should fail: Unauthorized', async () => {
+      const storeId = store?._id.toString();
+      const url = `${baseURL}/stores/${storeId}/all`;
       request(app).get(url).expect(401);
     });
 
     it('[200] Should succeed: OK', async () => {
+      const storeId = store?._id.toString();
+      const url = `${baseURL}/stores/${storeId}/all`;
       const token = testUser.token || '';
       const res = await request(app).get(url).set('Authorization', token).expect(200);
       const products = res.body.products as IProductDocument[];
@@ -53,58 +56,33 @@ describe('PRODUCTS', () => {
   });
 
   describe('[GET] /products/:{productId}', () => {
-    const invalidUrl = `${baseURL}/${invalidMongoId}`;
-
     it('[401] Should fail: Unauthorized', async () => {
-      const url = `${baseURL}/${product?._id}`;
+      const storeId = store?._id.toString();
+      const url = `${baseURL}/stores/${storeId}/${product?._id}`;
       request(app).get(url).expect(401);
     });
 
     it('[400] Should fail: Bad request', async () => {
+      const storeId = store?._id.toString();
+      const invalidUrl = `${baseURL}/stores/${storeId}/${invalidMongoId}`;
       const token = testUser.token || '';
       request(app).get(invalidUrl).set('Authorization', token).expect(400);
     });
 
     it('[404] Should fail: Not found', async () => {
+      const storeId = store?._id.toString();
+      const invalidUrl = `${baseURL}/stores/${storeId}/${nonExistingMongoId}`;
       const token = testUser.token || '';
-      request(app).get(`${baseURL}/${nonExistingMongoId}`).set('Authorization', token).expect(404);
+      request(app).get(invalidUrl).set('Authorization', token).expect(404);
     });
 
     it('[200] Should succeed: OK', async () => {
-      const url = `${baseURL}/${product?._id}`;
+      const storeId = store?._id.toString();
+      const url = `${baseURL}/stores/${storeId}/${product?._id}`;
       const token = testUser.token || '';
       const res = await request(app).get(url).set('Authorization', token).expect(200);
       const productResponse = res.body.product as IProductDocument;
       validateProduct(productResponse);
-    });
-  });
-
-  describe('[GET] /products/:{productId}/reviews', () => {
-    it('[401] Should fail: Unauthorized', async () => {
-      const url = `${baseURL}/${product?._id}/reviews`;
-      request(app).get(url).expect(401);
-    });
-
-    it('[400] Should fail: Bad request', async () => {
-      const url = `${baseURL}/${invalidMongoId}/reviews`;
-      const token = testUser.token || '';
-      request(app).get(url).set('Authorization', token).expect(400);
-    });
-
-    it('[404] Should fail: Not found', async () => {
-      const url = `${baseURL}/${nonExistingMongoId}/reviews`;
-      const token = testUser.token || '';
-      request(app).get(url).set('Authorization', token).expect(404);
-    });
-
-    it('[200] Should succeed: OK', async () => {
-      const url = `${baseURL}/${product?._id}/reviews`;
-      const token = testUser.token || '';
-      const res = await request(app).get(url).set('Authorization', token).expect(200);
-      const reviews = res.body.reviews as IReviewDocument[];
-      reviews.forEach((review) => {
-        validateReview(review);
-      });
     });
   });
 
@@ -117,24 +95,28 @@ describe('PRODUCTS', () => {
     };
 
     it('[401] Should fail: Unauthorized', async () => {
-      const url = `${baseURL}/${product?._id}`;
+      const storeId = store?._id.toString();
+      const url = `${baseURL}/stores/${storeId}/${product?._id}`;
       request(app).patch(url).expect(401);
     });
 
     it('[400] Should fail: Bad request', async () => {
-      const url = `${baseURL}/${product?._id}`;
+      const storeId = store?._id.toString();
+      const url = `${baseURL}/stores/${storeId}/${product?._id}`;
       const token = testUser.token || '';
       request(app).patch(url).set('Authorization', token).send(invalidBody).expect(400);
     });
 
     it('[404] Should fail: Not found', async () => {
-      const url = `${baseURL}/${nonExistingMongoId}`;
+      const storeId = store?._id.toString();
+      const url = `${baseURL}/stores/${storeId}/${nonExistingMongoId}`;
       const token = testUser.token || '';
       request(app).patch(url).set('Authorization', token).send(validBody).expect(404);
     });
 
     it('[200] Should succeed: OK', async () => {
-      const url = `${baseURL}/${product?._id}`;
+      const storeId = store?._id.toString();
+      const url = `${baseURL}/stores/${storeId}/${product?._id}`;
       const token = testUser.token || '';
       request(app).patch(url).set('Authorization', token).send(validBody).expect(200);
     });
@@ -142,24 +124,28 @@ describe('PRODUCTS', () => {
 
   describe('[DELETE] /products/:{productId}', () => {
     it('[401] Should fail: Unauthorized', async () => {
-      const url = `${baseURL}/${product?._id}`;
+      const storeId = store?._id.toString();
+      const url = `${baseURL}/stores/${storeId}/${product?._id}`;
       request(app).delete(url).expect(401);
     });
 
     it('[400] Should fail: Bad request', async () => {
-      const url = `${baseURL}/${invalidMongoId}`;
+      const storeId = store?._id.toString();
+      const url = `${baseURL}/stores/${storeId}/${invalidMongoId}`;
       const token = testUser.token || '';
       request(app).delete(url).set('Authorization', token).expect(400);
     });
 
     it('[400] Should fail: Not found', async () => {
-      const url = `${baseURL}/${nonExistingMongoId}`;
+      const storeId = store?._id.toString();
+      const url = `${baseURL}/stores/${storeId}/${nonExistingMongoId}`;
       const token = testUser.token || '';
       request(app).delete(url).set('Authorization', token).expect(400);
     });
 
     it('[200] Should succeed: OK', async () => {
-      const url = `${baseURL}/${product?._id}`;
+      const storeId = store?._id.toString();
+      const url = `${baseURL}/stores/${storeId}/${product?._id}`;
       const token = testUser.token || '';
       request(app).delete(url).set('Authorization', token).expect(200);
     });
