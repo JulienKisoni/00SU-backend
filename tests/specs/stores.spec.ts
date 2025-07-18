@@ -12,16 +12,16 @@ import { validateProduct } from './products.spec';
 const { invalidMongoId, nonExistingMongoId } = CONSTANTS;
 
 const baseURL = '/v1/stores';
-let testUser: ITestUser = {};
+const testUser: ITestUser = {};
 let store: IStoreDocument | undefined;
 let server: Server | undefined;
 
-describe('STORES', () => {
+describe.only('STORES', () => {
   before(async () => {
     server = await startServer('8000', app);
     const res = await seedDatabase();
     store = res.store;
-    const tokens = await login();
+    const tokens = await login({ email: 'julien+admin@mail.com', password: 'julien+admin' });
     if (tokens) {
       testUser.tokens = tokens;
       testUser.token = `Bearer ${tokens.accessToken}`;
@@ -36,7 +36,7 @@ describe('STORES', () => {
   });
 
   describe('[GET] /stores', () => {
-    let url = baseURL;
+    const url = baseURL;
 
     it('[401] Should fail: Unauthorized', async () => {
       request(app).get(url).expect(401);
@@ -114,6 +114,12 @@ describe('STORES', () => {
       name: 'Amazon',
       description: 'Amazon description',
       active: true,
+      address: {
+        line1: '123 Rue papa',
+        country: 'CANADA',
+        state: 'QC',
+        city: 'Montreal',
+      },
     };
     const invalidBody = { ...validBody };
     invalidBody.description = '';
@@ -136,10 +142,9 @@ describe('STORES', () => {
   describe('[POST] /stores/:{storeId}/products', () => {
     const validBody = {
       name: 'Playstation 5',
-      quantity: 10,
       description: 'Playstation description',
+      quantity: 10,
       minQuantity: 2,
-      active: true,
       unitPrice: 750,
     };
     const invalidBody = { ...validBody };
@@ -166,7 +171,7 @@ describe('STORES', () => {
       const url = `${baseURL}/${store?._id}/products`;
       const token = testUser.token || '';
       const res = await request(app).post(url).set('Authorization', token).send(validBody).expect(201);
-      should(res.body).have.property('productId');
+      validateProduct(res.body);
     });
   });
 

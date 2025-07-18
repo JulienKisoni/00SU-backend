@@ -12,7 +12,7 @@ import { validateReview } from './reviews.spec';
 const { invalidMongoId, nonExistingMongoId } = CONSTANTS;
 
 const baseURL = '/v1/products';
-let testUser: ITestUser = {};
+const testUser: ITestUser = {};
 let product: IProductDocument | undefined;
 let server: Server | undefined;
 
@@ -36,7 +36,7 @@ describe('PRODUCTS', () => {
   });
 
   describe('[GET] /products', () => {
-    let url = baseURL;
+    const url = baseURL;
 
     it('[401] Should fail: Unauthorized', async () => {
       request(app).get(url).expect(401);
@@ -169,13 +169,13 @@ describe('PRODUCTS', () => {
 export const validateProduct = (product: IProductDocument) => {
   should(product).have.property('_id');
   should(product).have.property('name');
-  should(product).have.property('quantity');
   should(product).have.property('description');
+  should(product).have.property('teamId');
+  should(product).have.property('storeId');
+  should(product).have.property('quantity');
   should(product).have.property('minQuantity');
-  should(product).have.property('owner');
-  should(product).have.property('active');
   should(product).have.property('unitPrice');
-  should(product).have.property('reviews');
+  should(product).have.property('owner');
   should(product).have.property('createdAt');
   should(product).have.property('updatedAt');
 };

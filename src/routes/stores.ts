@@ -24,7 +24,7 @@ storesRouter.post('/', permissionMiddlewares.hasPermission({ Model: 'stores', Ac
 storesRouter.post(
   '/:storeId/products',
   permissionMiddlewares.hasPermission({ Model: 'products', Action: 'create' }),
-  storeMiddlewares.isStoreOwner,
+  storeMiddlewares.getStore,
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   productCtrl.addProduct,
@@ -40,7 +40,7 @@ storesRouter.post(
 storesRouter.delete(
   '/:storeId',
   permissionMiddlewares.hasPermission({ Model: 'stores', Action: 'delete' }),
-  storeMiddlewares.isStoreOwner,
+  storeMiddlewares.getStore,
   storeCtrl.deleteStore,
 );
 storesRouter.delete(
@@ -54,7 +54,7 @@ storesRouter.delete(
 storesRouter.patch(
   '/:storeId',
   permissionMiddlewares.hasPermission({ Model: 'stores', Action: 'update' }),
-  storeMiddlewares.isStoreOwner,
+  storeMiddlewares.getStore,
   storeCtrl.editStore,
 );
 
