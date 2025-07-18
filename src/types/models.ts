@@ -34,6 +34,8 @@ export interface IUserProfile {
   username?: string;
   picture?: string;
 }
+
+export type DummyUser = Pick<IUserDocument, 'email' | 'password' | 'profile' | 'teamId'>;
 export interface IUserDocument extends Timestamps {
   _id: string | Schema.Types.ObjectId;
   email: string;

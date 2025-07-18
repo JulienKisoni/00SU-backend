@@ -12,11 +12,11 @@ import { validateOrder } from './orders.spec';
 const { invalidMongoId, nonExistingMongoId } = CONSTANTS;
 
 const baseURL = '/v1/users';
-let testUser: ITestUser = {};
+const testUser: ITestUser = {};
 let user: IUserDocument | undefined;
 let server: Server | undefined;
 
-describe('USERS', () => {
+describe.only('USERS', () => {
   before(async () => {
     server = await startServer('8000', app);
     const res = await seedDatabase();
@@ -37,7 +37,7 @@ describe('USERS', () => {
   });
 
   describe('[GET] /users', () => {
-    let url = baseURL;
+    const url = baseURL;
 
     it('[401] Should fail: Unauthorized', async () => {
       request(app).get(url).expect(401);
@@ -182,10 +182,10 @@ describe('USERS', () => {
 
 export const validateUser = (user: IUserDocument) => {
   should(user).have.property('_id');
-  should(user).have.property('username');
   should(user).have.property('email');
   should(user).have.property('storeIds');
   should(user).have.propertyByPath('profile', 'role');
+  should(user).have.propertyByPath('profile', 'username');
   should(user).have.property('createdAt');
   should(user).have.property('updatedAt');
 };

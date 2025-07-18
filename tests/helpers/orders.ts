@@ -2,7 +2,6 @@ import { IProductMethods } from '../../src/models/product';
 import { CartItem, IOrderDocument, IUserDocument } from '../../src/types/models';
 import { OrderModel } from '../../src/models/order';
 import { generateOrderNumber, calculateTotalPrice } from '../../src/business/orders';
-import { ORDER_STATUS } from '../../src/types/enums';
 
 type CreateOrderDoc = Omit<IOrderDocument, '_id' | 'createdAt' | 'updatedAt'>;
 
@@ -36,10 +35,11 @@ export const createOrder = async ({ products, user, index }: ICreateOrder) => {
   const totalPrice = calculateTotalPrice({ items, products });
   const doc: CreateOrderDoc = {
     items,
-    owner: user._id,
+    orderedBy: user._id,
     totalPrice,
     orderNumber,
-    status: ORDER_STATUS.PENDING,
+    teamId: user.teamId,
+    storeId: products[0].storeId,
   };
   const order = await OrderModel.create(doc);
   return order;

@@ -5,10 +5,11 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "command": "yarn test",
       "name": "Test",
       "request": "launch",
-      "type": "node-terminal",
+      "type": "node",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["./node_modules/.bin/cross-env", "TS_NODE_PROJECT=tests/tsconfig.json", "./node_modules/.bin/mocha"],
       "env": {
         "NODE_ENV": "dev",
         "PORT": "8000",

@@ -12,7 +12,11 @@ export const injectProducts = async (store: IStoreMethods) => {
 
 export const createStoreProducts = async (store: IStoreMethods) => {
   const promises = DummyProducts.map((product) => {
-    return createStore({ doc: product, store });
+    const doc = {
+      ...product,
+      teamId: store.teamId,
+    };
+    return createStore({ doc, store });
   });
   const products = await Promise.all(promises);
   return products;

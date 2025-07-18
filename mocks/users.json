@@ -1,20 +1,29 @@
 [
   {
-    "username": "julien",
     "password": "julien",
     "email": "julien@mail.com",
-    "role": "user"
+    "teamId": "",
+    "profile": {
+      "username": "julien",
+      "role": "manager"
+    }
   },
   {
-    "username": "julien+admin",
     "password": "julien+admin",
     "email": "julien+admin@mail.com",
-    "role": "admin"
+    "teamId": "",
+    "profile": {
+      "username": "julien+admin",
+      "role": "admin"
+    }
   },
   {
-    "username": "julien+load",
     "password": "julien+load",
     "email": "julien+load@mail.com",
-    "role": "user"
+    "teamId": "",
+    "profile": {
+      "username": "julien+load",
+      "role": "clerk"
+    }
   }
 ]

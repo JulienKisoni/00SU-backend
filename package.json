@@ -18,6 +18,7 @@
     "test:units": "jest --detectOpenHandles",
     "test:units:one": "jest units-tests/specs/orders.spec.ts --detectOpenHandles",
     "test:integration": "cross-env TS_NODE_PROJECT='tests/tsconfig.json' mocha",
+    "test:integration:one": "cross-env TS_NODE_PROJECT='tests/tsconfig.json' mocha --spec tests/specs/users.spec.ts",
     "test:e2e": "cross-env TS_NODE_PROJECT='./e2e/tsconfig.json' mocha --config 'e2e/.mocharc.json'",
     "prettier": "prettier --write src/**/*.ts",
     "lint": "npm run prettier && eslint src/**/*.ts",
