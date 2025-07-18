@@ -16,7 +16,7 @@ let product: IProductDocument | undefined;
 let store: IStoreDocument | undefined;
 let server: Server | undefined;
 
-describe.only('PRODUCTS', () => {
+describe('PRODUCTS', () => {
   before(async () => {
     server = await startServer('8000', app);
     const res = await seedDatabase();
