@@ -110,7 +110,7 @@ export const deleteUser = async (req: ExtendedRequest<undefined, ParamsDictionar
   res.status(HTTP_STATUS_CODES.OK).json({});
 };
 
-type EditUserPayload = Pick<IUserDocument, 'email' | 'profile'>;
+type EditUserPayload = Pick<IUserDocument, 'email' | 'profile' | 'password'>;
 interface JoiSchema {
   params: {
     userId: string;
@@ -130,6 +130,10 @@ export const editUser = async (req: ExtendedRequest<EditUserPayload, ParamsDicti
   const emailMessages: LanguageMessages = {
     'string.email': 'Please enter a valid email',
     'string.max': 'The field email must have 320 characters maximum',
+  };
+  const passwordMessages: LanguageMessages = {
+    'string.min': 'The field password must have 6 characters minimum',
+    'string.max': 'The field password must have 128 characters maximum',
   };
   const roleMessages: LanguageMessages = {
     'any.only': 'Please enter a valid role',
@@ -158,6 +162,7 @@ export const editUser = async (req: ExtendedRequest<EditUserPayload, ParamsDicti
     },
     body: {
       email: Joi.string().min(5).max(320).email().messages(emailMessages),
+      password: Joi.string().min(6).max(128).messages(passwordMessages),
       profile: {
         username: Joi.string().min(6).max(60).messages(usernameMessages),
         role: Joi.string().min(5).max(13).valid(USER_ROLES.admin, USER_ROLES.clerk, USER_ROLES.manager).messages(roleMessages),

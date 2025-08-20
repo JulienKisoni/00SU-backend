@@ -1,7 +1,10 @@
+import { UpdateQuery } from 'mongoose';
+
 import { HTTP_STATUS_CODES } from '../types/enums';
 import { createError, GenericError } from '../middlewares/errors';
 import { UserModel } from '../models/user';
 import { generateToken } from '../utils/tokens';
+import { encrypt } from '../utils/hash';
 
 type LoginPayload = API_TYPES.Routes['body']['login'];
 type LoginResponse = API_TYPES.Routes['business']['auth']['login'];
@@ -49,7 +52,13 @@ export const refreshToken = async ({ refreshToken }: { refreshToken: string }): 
   return { accessToken };
 };
 
-export const recoverPassword = async ({ email }: { email: string }): Promise<{ email?: string; error?: GenericError }> => {
+export const recoverPassword = async ({
+  email,
+  password,
+}: {
+  email: string;
+  password?: string;
+}): Promise<{ email?: string; error?: GenericError; username?: string; userId?: string }> => {
   const user = await UserModel.findByEmail(email);
   if (!user) {
     const error = createError({
@@ -59,5 +68,14 @@ export const recoverPassword = async ({ email }: { email: string }): Promise<{ e
     });
     return { error };
   }
-  return { email };
+  if (password && user && user.updateSelf) {
+    const update: UpdateQuery<{ password: string }> = {};
+    const { error, encryptedText } = await encrypt({ plainText: password });
+    if (error) {
+      return { error };
+    }
+    update['password'] = encryptedText;
+    await user?.updateSelf(update);
+  }
+  return { email, username: user.profile.username, userId: user._id.toString() };
 };

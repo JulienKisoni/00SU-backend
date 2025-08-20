@@ -72,25 +72,31 @@ export const refreshToken = async (req: ExtendedRequest<RefreshTokenBody, Params
 
 interface RecoverPasswordBody {
   email: string;
+  password?: string;
 }
 export const recoverPassword = async (req: ExtendedRequest<RecoverPasswordBody, ParamsDictionary>, res: Response, next: NextFunction) => {
   const messages: Joi.LanguageMessages = {
     'any.required': 'The refreshToken is required',
   };
+  const passwordMessages: LanguageMessages = {
+    'string.min': 'The field password must have 6 characters minimum',
+    'string.max': 'The field password must have 128 characters maximum',
+  };
   const schema = Joi.object<RecoverPasswordBody>({
     email: Joi.string().email().required().messages(messages),
+    password: Joi.string().min(6).max(128).messages(passwordMessages),
   });
   const session = req.currentSession;
   const { error, value } = schema.validate(req.body, { stripUnknown: true, abortEarly: true });
   if (error) {
     return handleError({ error, next, currentSession: session });
   }
-  const { error: err, email } = await authBusiness.recoverPassword({ email: value.email });
+  const { error: err, email, username, userId } = await authBusiness.recoverPassword(value);
   if (err) {
     return handleError({ error: err, next, currentSession: session });
   }
   if (session) {
     await session.endSession();
   }
-  res.status(HTTP_STATUS_CODES.OK).json({ email });
+  res.status(HTTP_STATUS_CODES.OK).json({ email, username, userId });
 };

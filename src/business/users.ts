@@ -123,14 +123,14 @@ export const deleteOne = async ({ userId }: { userId: string }) => {
   return UserModel.deleteOne({ _id: userId }).exec();
 };
 
-type EditUserPayload = Pick<IUserDocument, 'email' | 'profile'>;
+type EditUserPayload = Pick<IUserDocument, 'email' | 'profile' | 'password'>;
 interface EditUserParams {
   payload: Partial<EditUserPayload>;
   userId: string;
 }
 export const updateOne = async ({ payload, userId }: EditUserParams): Promise<{ error?: GenericError }> => {
   const update: UpdateQuery<EditUserPayload> = {};
-  const { email, profile } = payload;
+  const { email, profile, password } = payload;
   if (!payload || isEmpty(payload)) {
     const error = createError({
       statusCode: HTTP_STATUS_CODES.BAD_REQUEST,
@@ -141,6 +141,13 @@ export const updateOne = async ({ payload, userId }: EditUserParams): Promise<{ 
   }
   if (email) {
     update['email'] = email;
+  }
+  if (password) {
+    const { error, encryptedText } = await encrypt({ plainText: password });
+    if (error) {
+      return { error };
+    }
+    update['password'] = encryptedText;
   }
   if (profile?.username) {
     update['profile.username'] = profile?.username;
