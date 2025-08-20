@@ -30,7 +30,7 @@ export const login = async ({ email, password }: LoginPayload): Promise<LoginRes
   if (error) {
     return { error };
   }
-  return { tokens };
+  return { tokens, userId: user._id.toString() };
 };
 
 export const refreshToken = async ({ refreshToken }: { refreshToken: string }): Promise<{ accessToken?: string; error?: GenericError }> => {

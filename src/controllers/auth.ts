@@ -33,7 +33,7 @@ export const login = async (req: ExtendedRequest<LoginBody, ParamsDictionary>, r
   if (error) {
     return handleError({ error, next, currentSession: session });
   } else if (value) {
-    const { error, tokens } = await authBusiness.login(value);
+    const { error, tokens, userId } = await authBusiness.login(value);
     if (error) {
       return handleError({ error, next, currentSession: session });
     }
@@ -44,7 +44,7 @@ export const login = async (req: ExtendedRequest<LoginBody, ParamsDictionary>, r
     if (session) {
       await session.endSession();
     }
-    res.status(HTTP_STATUS_CODES.OK).json(tokens);
+    res.status(HTTP_STATUS_CODES.OK).json({ ...tokens, userId });
   }
 };
 

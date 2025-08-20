@@ -1,6 +1,7 @@
 import createError from 'http-errors';
 import express, { Request, Response } from 'express';
 import cookieParser from 'cookie-parser';
+import cors, { CorsOptions } from 'cors';
 // import swaggerUi from 'swagger-ui-express';
 // import * as Sentry from '@sentry/node';
 
@@ -14,12 +15,17 @@ import { handleTransaction } from './middlewares/session-transaction';
 const TEST_ENABLED = process.env.TEST_ENABLED === 'true';
 // const LOAD_TEST_ENABLED = process.env.LOAD_TEST_ENABLED === 'true';
 
+const corsOptions: CorsOptions = {
+  origin: 'http://localhost:3000',
+};
+
 const app: express.Application = express();
 
 if (!TEST_ENABLED) {
   app.use(httpLogger);
 }
 
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());

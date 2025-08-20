@@ -14,6 +14,7 @@ namespace API_TYPES {
   export interface TokenResponse {
     error?: GenericError;
     tokens?: Tokens;
+    userId?: string;
   }
 
   interface CartItem {
