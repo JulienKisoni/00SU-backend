@@ -50,7 +50,7 @@ export const addProduct = async (req: ExtendedRequest<AddProductBody, ParamsDict
       description: Joi.string().min(12).max(100).required().messages(descriptionMessages),
       quantity: Joi.number().positive().required().messages(qtyMessages),
       minQuantity: Joi.number().positive().required().messages(minQtyMessages),
-      picture: Joi.string().min(150).max(2000),
+      picture: Joi.string().allow('', null).min(50).max(2000),
       unitPrice: Joi.number().positive().required().messages(unitPriceMessages),
     },
   });

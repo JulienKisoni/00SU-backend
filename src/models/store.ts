@@ -81,7 +81,7 @@ const storeSchema = new Schema<IStoreSchema>(
       required: true,
     },
     picture: {
-      type: Boolean,
+      type: String,
       required: false,
     },
   },
