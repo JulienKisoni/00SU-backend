@@ -35,7 +35,7 @@ export const isTeamOrder = async (req: ExtendedRequest<undefined, ParamsDictiona
     });
     return next(error);
   }
-  const order = await OrderModel.findOne({ _id: orderId, teamId, storeId }).lean().exec();
+  const order = await OrderModel.findOne({ _id: orderId, teamId, storeId }).populate(['orderedBy', 'storeId']).lean().exec();
   if (!order?._id) {
     const error = createError({
       statusCode: HTTP_STATUS_CODES.FORBIDDEN,

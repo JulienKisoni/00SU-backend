@@ -46,10 +46,10 @@ export const addOrder = async (req: ExtendedRequest<AddOrderBody, ParamsDictiona
           productId: Joi.string().regex(regex.mongoId).required().messages(productIdMessages),
           quantity: Joi.number().min(1).required().messages(quantityMessages),
           productDetails: Joi.object({
-            name: Joi.string().messages(nameMessages),
-            description: Joi.string().messages(descriptionMessages),
-            unitPrice: Joi.number().messages(priceMessages),
-            picture: Joi.string().allow('').messages(pictureMessages),
+            name: Joi.string().required().messages(nameMessages),
+            description: Joi.string().required().messages(descriptionMessages),
+            unitPrice: Joi.number().required().messages(priceMessages),
+            picture: Joi.string().required().allow('').messages(pictureMessages),
           }).required(),
         }),
       )
@@ -197,10 +197,10 @@ export const updateOne = async (req: ExtendedRequest<UpdateOneOrderBody, ParamsD
           productId: Joi.string().regex(regex.mongoId).required().messages(productIdMessages),
           quantity: Joi.number().min(1).required().messages(quantityMessages),
           productDetails: Joi.object({
-            name: Joi.string().messages(nameMessages),
-            description: Joi.string().messages(descriptionMessages),
-            unitPrice: Joi.number().messages(priceMessages),
-            picture: Joi.string().allow('').messages(pictureMessages),
+            name: Joi.string().required().messages(nameMessages),
+            description: Joi.string().required().messages(descriptionMessages),
+            unitPrice: Joi.number().required().messages(priceMessages),
+            picture: Joi.string().required().allow('').messages(pictureMessages),
           }).required(),
         }),
       )

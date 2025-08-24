@@ -20,7 +20,7 @@ const productDetailsSchema = new Schema<Partial<IProductDocument>>(
       type: Number,
     },
     picture: {
-      type: Number,
+      type: String,
     },
   },
   { _id: false },

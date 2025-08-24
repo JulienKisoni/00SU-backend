@@ -2,11 +2,12 @@ import ShortUniqueId from 'short-unique-id';
 import omit from 'lodash.omit';
 import isEmpty from 'lodash.isempty';
 
-import { CartItem, GeneralResponse, IOrderDocument, IProductDocument } from '../types/models';
+import { CartItem, GeneralResponse, IOrderDocument, IProductDocument, IStoreDocument, IUserDocument } from '../types/models';
 import { createError } from '../middlewares/errors';
 import { HTTP_STATUS_CODES } from '../types/enums';
 import { ProductModel } from '../models/product';
 import { OrderModel } from '../models/order';
+import { transformUser } from './users';
 
 type TransformKeys = keyof IOrderDocument;
 interface ITransformOrder {
@@ -14,6 +15,22 @@ interface ITransformOrder {
   order: IOrderDocument;
 }
 const transformOrder = ({ order, excludedFields }: ITransformOrder): Partial<IOrderDocument> => {
+  if (order.orderedBy && typeof order.orderedBy === 'object') {
+    const owner = order.orderedBy as unknown as IUserDocument;
+    order.ownerDetails = transformUser({ user: owner, excludedFields: ['password', 'private'] });
+    order.orderedBy = owner._id;
+  }
+  if (order.storeId && typeof order.storeId === 'object') {
+    const store = order.storeId as unknown as IStoreDocument;
+    order.storeDetails = store;
+    order.storeId = store._id;
+  }
+  order.items = order.items.map((item) => {
+    return {
+      ...item,
+      totalPrice: item.productDetails?.unitPrice ? item.quantity * item.productDetails?.unitPrice : undefined,
+    };
+  });
   return omit(order, excludedFields);
 };
 
@@ -132,7 +149,7 @@ export const addOrder = async (params: AddOrderParams): AddOrderResponse => {
 
 type GetAllOrdersResponse = Promise<GeneralResponse<{ orders: Partial<IOrderDocument>[] }>>;
 export const getAllOrders = async ({ teamId, storeId }: { teamId: string; storeId: string }): GetAllOrdersResponse => {
-  const results = await OrderModel.find({ teamId, storeId }).lean().exec();
+  const results = await OrderModel.find({ teamId, storeId }).populate('orderedBy').lean().exec();
   const orders = results.map((order) => transformOrder({ order, excludedFields: ['__v'] }));
   return { data: { orders } };
 };

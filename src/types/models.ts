@@ -162,6 +162,7 @@ export interface CartItem {
   productId: string | Schema.Types.ObjectId;
   quantity: number;
   productDetails?: Partial<IProductDocument>;
+  totalPrice?: number;
 }
 
 export interface IOrderDocument extends Timestamps {
@@ -170,6 +171,8 @@ export interface IOrderDocument extends Timestamps {
   items: CartItem[];
   totalPrice: number;
   orderedBy: string | Schema.Types.ObjectId;
+  ownerDetails?: Partial<IUserDocument>;
+  storeDetails?: Partial<IStoreDocument>;
   teamId: string | Schema.Types.ObjectId;
   storeId: string | Schema.Types.ObjectId;
   orderNumber: string;
