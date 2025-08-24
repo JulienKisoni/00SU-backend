@@ -46,8 +46,8 @@ export const addProduct = async (req: ExtendedRequest<AddProductBody, ParamsDict
       storeId: Joi.string().regex(regex.mongoId).required().messages(storeIdMessages),
     },
     body: {
-      name: Joi.string().required().messages(nameMessages),
-      description: Joi.string().min(12).max(100).required().messages(descriptionMessages),
+      name: Joi.string().min(3).max(100).required().messages(nameMessages),
+      description: Joi.string().min(6).max(500).required().messages(descriptionMessages),
       quantity: Joi.number().positive().required().messages(qtyMessages),
       minQuantity: Joi.number().positive().required().messages(minQtyMessages),
       picture: Joi.string().allow('', null).min(50).max(2000),
