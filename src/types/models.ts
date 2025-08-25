@@ -187,6 +187,11 @@ export interface IReportDocument extends Timestamps {
   generatedBy: string | Schema.Types.ObjectId;
   _id: string | Schema.Types.ObjectId;
   __v?: number;
+  totalItems?: number;
+  allOrderItems?: CartItem[];
+  totalPrices?: number;
+  ownerDetails?: Partial<IUserDocument>;
+  storeDetails?: Partial<IStoreDocument>;
 }
 
 export interface IEvolution {

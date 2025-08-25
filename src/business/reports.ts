@@ -2,10 +2,11 @@ import omit from 'lodash.omit';
 import isEmpty from 'lodash.isempty';
 import { PipelineStage, Types } from 'mongoose';
 
-import { GeneralResponse, IReportDocument } from '../types/models';
+import { CartItem, GeneralResponse, IOrderDocument, IReportDocument, IStoreDocument, IUserDocument } from '../types/models';
 import { createError } from '../middlewares/errors';
 import { HTTP_STATUS_CODES } from '../types/enums';
 import { ReportModel } from '../models/report';
+import { transformUser } from './users';
 
 type TransformKeys = keyof IReportDocument;
 interface ITransformReport {
@@ -13,7 +14,28 @@ interface ITransformReport {
   report: IReportDocument;
 }
 const transformReport = ({ report, excludedFields }: ITransformReport): Partial<IReportDocument> => {
-  return omit(report, excludedFields);
+  const reportOrders = report.orders as unknown as IOrderDocument[];
+  let allOrderItems: CartItem[] = [];
+  reportOrders.forEach((ord) => {
+    allOrderItems = [...allOrderItems, ...ord.items];
+  });
+  if (report.generatedBy && typeof report.generatedBy === 'object') {
+    const user = report.generatedBy as unknown as IUserDocument;
+    report.ownerDetails = transformUser({ user, excludedFields: ['password', 'private'] });
+    report.generatedBy = user._id;
+  }
+  if (report.storeId && typeof report.storeId === 'object') {
+    const store = report.storeId as unknown as IStoreDocument;
+    report.storeDetails = store;
+    report.storeId = store._id;
+  }
+  const newReport = {
+    ...report,
+    totalItems: allOrderItems?.length,
+    totalPrices: reportOrders.map((item) => item.totalPrice || 0).reduce((a: number, b: number) => a + b, 0),
+    allOrderItems: undefined,
+  };
+  return omit(newReport, excludedFields);
 };
 
 type AddReportBody = API_TYPES.Routes['body']['reports']['add'];
@@ -79,7 +101,7 @@ export const getOneReport = async (payload: GetOneReportPayload): GetOneOrderRes
     });
     return { error };
   }
-  const _report = await ReportModel.findById(reportId).populate('orders').lean().exec();
+  const _report = await ReportModel.findById(reportId).populate(['orders', 'storeId', 'generatedBy']).lean().exec();
   const newReport = transformReport({ report: _report as IReportDocument, excludedFields: ['__v'] });
   return { data: { report: newReport } };
 };
@@ -123,6 +145,7 @@ export const updateOne = async (payload: UpdateOneReportPayload): UpdateOneRepor
     return { error };
   }
   const newReport = await ReportModel.findByIdAndUpdate(reportId, { $set: { ...body } }, { new: true })
+    .populate(['storeId', 'generatedBy', 'orders'])
     .lean()
     .exec();
   if (!newReport?._id) {
