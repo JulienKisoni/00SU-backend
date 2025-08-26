@@ -110,7 +110,7 @@ export const deleteUser = async (req: ExtendedRequest<undefined, ParamsDictionar
   res.status(HTTP_STATUS_CODES.OK).json({});
 };
 
-type EditUserPayload = Pick<IUserDocument, 'email' | 'profile' | 'password'>;
+type EditUserPayload = Pick<IUserDocument, 'email' | 'profile' | 'password'> & { currentPassword?: string };
 interface JoiSchema {
   params: {
     userId: string;
@@ -132,6 +132,11 @@ export const editUser = async (req: ExtendedRequest<EditUserPayload, ParamsDicti
     'string.max': 'The field email must have 320 characters maximum',
   };
   const passwordMessages: LanguageMessages = {
+    'string.min': 'The field password must have 6 characters minimum',
+    'string.max': 'The field password must have 128 characters maximum',
+  };
+  const currentPasswordMessages: LanguageMessages = {
+    'any.required': 'The field current password is required',
     'string.min': 'The field password must have 6 characters minimum',
     'string.max': 'The field password must have 128 characters maximum',
   };
@@ -166,7 +171,17 @@ export const editUser = async (req: ExtendedRequest<EditUserPayload, ParamsDicti
       profile: {
         username: Joi.string().min(6).max(60).messages(usernameMessages),
         role: Joi.string().min(5).max(13).valid(USER_ROLES.admin, USER_ROLES.clerk, USER_ROLES.manager).messages(roleMessages),
+        picture: Joi.string().allow('', null).min(50).max(2000),
       },
+      currentPassword: Joi.string()
+        .min(6)
+        .max(128)
+        .when('password', {
+          is: Joi.exist(),
+          then: Joi.required(),
+          otherwise: Joi.optional(),
+        })
+        .messages(currentPasswordMessages),
     },
   });
   const { error, value } = schema.validate(payload, { stripUnknown: true, abortEarly: true });

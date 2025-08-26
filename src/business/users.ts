@@ -6,7 +6,7 @@ import { UpdateQuery } from 'mongoose';
 import { IStoreDocument, IUserDocument, IUserProfile, RetrieveOneFilters, USER_ROLES } from '../types/models';
 import { IUserMethods, UserModel } from '../models/user';
 import { createError, GenericError } from '../middlewares/errors';
-import { encrypt } from '../utils/hash';
+import { compareValues, encrypt } from '../utils/hash';
 import { HTTP_STATUS_CODES } from '../types/enums';
 
 const retrieveUser = async (filters: RetrieveOneFilters<IUserDocument>): Promise<IUserDocument | null> => {
@@ -123,14 +123,23 @@ export const deleteOne = async ({ userId }: { userId: string }) => {
   return UserModel.deleteOne({ _id: userId }).exec();
 };
 
-type EditUserPayload = Pick<IUserDocument, 'email' | 'profile' | 'password'>;
+type EditUserPayload = Pick<IUserDocument, 'email' | 'profile' | 'password'> & { currentPassword?: string };
 interface EditUserParams {
   payload: Partial<EditUserPayload>;
   userId: string;
 }
 export const updateOne = async ({ payload, userId }: EditUserParams): Promise<{ error?: GenericError }> => {
   const update: UpdateQuery<EditUserPayload> = {};
-  const { email, profile, password } = payload;
+  const { email, profile, password, currentPassword } = payload;
+  const user = await UserModel.findById<IUserMethods>(userId).exec();
+  if (!user) {
+    const error = createError({
+      statusCode: HTTP_STATUS_CODES.NOT_FOUND,
+      message: 'No user',
+      publicMessage: 'No user associated with your request',
+    });
+    return { error };
+  }
   if (!payload || isEmpty(payload)) {
     const error = createError({
       statusCode: HTTP_STATUS_CODES.BAD_REQUEST,
@@ -142,17 +151,29 @@ export const updateOne = async ({ payload, userId }: EditUserParams): Promise<{ 
   if (email) {
     update['email'] = email;
   }
-  if (password) {
-    const { error, encryptedText } = await encrypt({ plainText: password });
-    if (error) {
-      return { error };
+  if (password && currentPassword) {
+    const { error: _error, areEqual } = await compareValues({ plainText: currentPassword, encryptedText: user.password });
+    if (_error) {
+      return { error: _error };
+    } else if (areEqual) {
+      const { error, encryptedText } = await encrypt({ plainText: password });
+      if (error) {
+        return { error };
+      }
+      update['password'] = encryptedText;
+    } else {
+      const __error = createError({
+        statusCode: HTTP_STATUS_CODES.BAD_REQUEST,
+        message: 'Password not matching',
+        publicMessage: 'Invalid password',
+      });
+      return { error: __error };
     }
-    update['password'] = encryptedText;
   }
   if (profile?.username) {
     update['profile.username'] = profile?.username;
   }
-  if (profile?.picture) {
+  if (profile?.picture !== undefined) {
     update['profile.picture'] = profile?.picture;
   }
   if (profile?.role) {
