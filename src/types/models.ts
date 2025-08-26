@@ -219,6 +219,8 @@ export interface IGraphicDocument extends Timestamps {
   storeId: string | Schema.Types.ObjectId;
   teamId: string | Schema.Types.ObjectId;
   generatedBy: string | Schema.Types.ObjectId;
+  ownerDetails?: Partial<IUserDocument>;
+  storeDetails?: Partial<IStoreDocument>;
 }
 
 export type RetrieveOneFilters<T> = RootFilterQuery<T>;

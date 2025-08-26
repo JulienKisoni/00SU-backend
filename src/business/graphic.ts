@@ -2,18 +2,29 @@ import omit from 'lodash.omit';
 import isEmpty from 'lodash.isempty';
 import { PipelineStage, Types } from 'mongoose';
 
-import { GeneralResponse, IGraphicDocument } from '../types/models';
+import { GeneralResponse, IGraphicDocument, IStoreDocument, IUserDocument } from '../types/models';
 import { createError } from '../middlewares/errors';
 import { HTTP_STATUS_CODES } from '../types/enums';
 import { GraphicModel } from '../models/graphic';
 import { HistoryModel } from '../models/History';
+import { transformUser } from './users';
 
 type TransformKeys = keyof IGraphicDocument;
 interface ITransformGraphic {
   excludedFields: TransformKeys[];
   graphic: IGraphicDocument;
 }
-const transformReport = ({ graphic, excludedFields }: ITransformGraphic): Partial<IGraphicDocument> => {
+const transformGraphic = ({ graphic, excludedFields }: ITransformGraphic): Partial<IGraphicDocument> => {
+  if (graphic.generatedBy && typeof graphic.generatedBy === 'object') {
+    const user = graphic.generatedBy as unknown as IUserDocument;
+    graphic.ownerDetails = transformUser({ user, excludedFields: ['password', 'private'] });
+    graphic.generatedBy = user._id;
+  }
+  if (graphic.storeId && typeof graphic.storeId === 'object') {
+    const store = graphic.storeId as unknown as IStoreDocument;
+    graphic.storeDetails = store;
+    graphic.storeId = store._id;
+  }
   return omit(graphic, excludedFields);
 };
 
@@ -84,7 +95,7 @@ export const getAllGraphics = async ({ teamId, storeId }: { teamId: string; stor
     },
   ];
   const results = await GraphicModel.aggregate<IGraphicDocument>(pipeline).hint({ teamId: 1, storeId: 1 });
-  const graphics = results.map((graphic) => transformReport({ graphic, excludedFields: ['__v'] }));
+  const graphics = results.map((graphic) => transformGraphic({ graphic, excludedFields: ['__v'] }));
   return { data: { graphics } };
 };
 
@@ -104,8 +115,8 @@ export const getOneGraphic = async (payload: GetOneGraphicPayload): GetOneOrderR
     });
     return { error };
   }
-  const _graphic = await GraphicModel.findById(graphicId).populate('histories').lean().exec();
-  const newGraphic = transformReport({ graphic: _graphic as IGraphicDocument, excludedFields: ['__v'] });
+  const _graphic = await GraphicModel.findById(graphicId).populate(['histories', 'storeId', 'generatedBy']).lean().exec();
+  const newGraphic = transformGraphic({ graphic: _graphic as IGraphicDocument, excludedFields: ['__v'] });
   return { data: { graphic: newGraphic } };
 };
 
@@ -158,6 +169,6 @@ export const updateOne = async (payload: UpdateGraphicPayload): UpdateOneGraphic
     });
     return { error };
   }
-  const transformed = transformReport({ graphic: newGraphic, excludedFields: ['__v'] });
+  const transformed = transformGraphic({ graphic: newGraphic, excludedFields: ['__v'] });
   return { data: { graphic: transformed } };
 };
