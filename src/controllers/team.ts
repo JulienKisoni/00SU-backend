@@ -165,3 +165,36 @@ export const getOneTeam = async (req: ExtendedRequest<undefined, ParamsDictionar
   }
   res.status(HTTP_STATUS_CODES.OK).json({ team });
 };
+
+export const getTeamMembers = async (req: ExtendedRequest<undefined, ParamsDictionary>, res: Response, next: NextFunction) => {
+  const params = req.params as unknown as GetOneTeamPayload;
+  const session = req.currentSession;
+
+  const { _id: userId } = req.user || {};
+
+  if (!userId) {
+    const error = createError({
+      statusCode: HTTP_STATUS_CODES.BAD_REQUEST,
+      message: 'No userId',
+      publicMessage: 'No user associated with your request',
+    });
+    return handleError({ error, next, currentSession: session });
+  }
+
+  const teamIdMessages: LanguageMessages = {
+    'any.required': 'Please provide a team id',
+    'string.pattern.base': 'Please provide a valid team id',
+  };
+  const schema = Joi.object<GetOneTeamPayload>({
+    teamId: Joi.string().regex(regex.mongoId).required().messages(teamIdMessages),
+  });
+  const { error, value } = schema.validate(params, { stripUnknown: true, abortEarly: true });
+  if (error) {
+    return handleError({ error, next, currentSession: session });
+  }
+  const { users } = await teamBusiness.getTeamMembers({ teamId: value.teamId, userId: userId.toString() });
+  if (session) {
+    await session.endSession();
+  }
+  res.status(HTTP_STATUS_CODES.OK).json({ users });
+};

@@ -36,13 +36,14 @@ interface AddUserPayload {
   email: string;
   password: string;
   profile: IUserProfile;
+  teamId?: string;
 }
 type AddUserReturn = {
   error?: GenericError;
   userId?: string;
 };
 
-export const addUser = async ({ email, password, profile }: AddUserPayload): Promise<AddUserReturn> => {
+export const addUser = async ({ email, password, profile, teamId }: AddUserPayload): Promise<AddUserReturn> => {
   const user = await UserModel.findOne({ email }).exec();
   if (user && user._id) {
     const error = createError({
@@ -60,6 +61,7 @@ export const addUser = async ({ email, password, profile }: AddUserPayload): Pro
     email,
     password: encryptedText,
     profile,
+    teamId,
   };
   const result = await UserModel.create(payload);
   const userId = result._id;
@@ -239,7 +241,7 @@ type InviteUserReturn = {
   link?: string;
 };
 
-export const inviteUser = async ({ email, role }: InviteUserPayload): Promise<InviteUserReturn> => {
+export const inviteUser = async ({ email, role }: InviteUserPayload, teamId: string): Promise<InviteUserReturn> => {
   const user = await UserModel.findOne({ email }).exec();
   if (user && user._id) {
     const error = createError({
@@ -258,6 +260,6 @@ export const inviteUser = async ({ email, role }: InviteUserPayload): Promise<In
   if (!signSecret) {
     return { error };
   }
-  const token = sign({ email, role }, signSecret, { expiresIn: '1h' }); // 1 hour expiry
+  const token = sign({ email, role, teamId }, signSecret, { expiresIn: '1h' }); // 1 hour expiry
   return { error: undefined, link: token };
 };

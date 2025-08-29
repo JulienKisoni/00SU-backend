@@ -4,7 +4,7 @@ import { UpdateQuery } from 'mongoose';
 
 import { ITeamDocument, IUserDocument, RetrieveOneFilters } from '../types/models';
 import { ITeamMethods, TeamModel } from '../models/team';
-import { UserModel } from '../models/user';
+import { IUserMethods, UserModel } from '../models/user';
 import { createError, GenericError } from '../middlewares/errors';
 import { HTTP_STATUS_CODES } from '../types/enums';
 import { transformUser } from './users';
@@ -135,4 +135,15 @@ export const getOne = async ({ teamId }: GetOneTeamPayload): Promise<GetOneTeamR
   }
   const transformed = transformTeam({ team, excludedFields: ['__v'] });
   return { team: transformed };
+};
+export const getTeamMembers = async ({ teamId, userId }: { teamId: string; userId: string }): Promise<{ users: Partial<IUserDocument>[] }> => {
+  const users = await UserModel.find<IUserMethods>({ teamId, _id: { $ne: userId } })
+    .lean()
+    .exec();
+  const transformed =
+    users.map((user) => {
+      const transformed = transformUser({ user, excludedFields: ['password', '__v', 'private'] });
+      return transformed;
+    }) || [];
+  return { users: transformed };
 };
