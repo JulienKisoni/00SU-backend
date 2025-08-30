@@ -13,7 +13,7 @@ interface ITransformReport {
   excludedFields: TransformKeys[];
   report: IReportDocument;
 }
-const transformReport = ({ report, excludedFields }: ITransformReport): Partial<IReportDocument> => {
+export const transformReport = ({ report, excludedFields }: ITransformReport): Partial<IReportDocument> => {
   const reportOrders = report.orders as unknown as IOrderDocument[];
   let allOrderItems: CartItem[] = [];
   reportOrders.forEach((ord) => {

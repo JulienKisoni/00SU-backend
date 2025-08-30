@@ -1,10 +1,19 @@
-import { ITeamDocument, IUserDocument } from '../../src/types/models';
+import { ITeamDocument, IUserDocument, USER_ROLES } from '../../src/types/models';
 import DummyUsers from '../../mocks/users.json';
-import { IUserMethods, UserModel } from '../../src/models/user';
+import { UserModel } from '../../src/models/user';
 import { encrypt } from '../../src/utils/hash';
 import * as authBusiness from '../../src/business/auth';
 
-type CreateUserDoc = Omit<IUserMethods, '_id' | 'createdAt' | 'updatedAt'>;
+interface CreateUserDoc {
+  email: string;
+  password: string;
+  teamId?: string;
+  profile: {
+    username?: string;
+    role: USER_ROLES;
+    picture?: string;
+  };
+}
 
 export const injectUsers = async (teams: ITeamDocument[]): Promise<(IUserDocument | undefined)[]> => {
   const promises = [];
@@ -20,7 +29,7 @@ export const injectUsers = async (teams: ITeamDocument[]): Promise<(IUserDocumen
   return users;
 };
 
-export const createUsers = async (teamId: string) => {
+export const createUsers = async (teamId?: string) => {
   const promises = DummyUsers.map((user) => {
     const { password, email, profile } = user;
     const doc: CreateUserDoc = {
@@ -53,7 +62,7 @@ interface ILoginArgs {
 }
 
 export const login = async (args?: ILoginArgs) => {
-  const { email = 'julien@mail.com', password = 'julien' } = args || {};
+  const { email = 'julien+admin@mail.com', password = 'julien+admin' } = args || {};
   const { tokens } = await authBusiness.login({ email, password });
   return tokens;
 };

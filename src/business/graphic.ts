@@ -14,7 +14,7 @@ interface ITransformGraphic {
   excludedFields: TransformKeys[];
   graphic: IGraphicDocument;
 }
-const transformGraphic = ({ graphic, excludedFields }: ITransformGraphic): Partial<IGraphicDocument> => {
+export const transformGraphic = ({ graphic, excludedFields }: ITransformGraphic): Partial<IGraphicDocument> => {
   if (graphic.generatedBy && typeof graphic.generatedBy === 'object') {
     const user = graphic.generatedBy as unknown as IUserDocument;
     graphic.ownerDetails = transformUser({ user, excludedFields: ['password', 'private'] });
