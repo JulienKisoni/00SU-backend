@@ -5,23 +5,27 @@ import { type Server } from 'http';
 import { app } from '../../src/app';
 import { startServer } from '../../src/utils/server';
 import { clearDatabase, CONSTANTS, seedDatabase } from '../helpers';
-import { IStoreDocument, ITestUser, IGraphicDocument } from '../../src/types/models';
+import { IStoreDocument, ITestUser, ICart } from '../../src/types/models';
 import { login } from '../helpers/users';
 
 const { invalidMongoId, nonExistingMongoId } = CONSTANTS;
 
-const baseURL = '/v1/graphics';
+const baseURL = '/v1/carts';
 const testUser: ITestUser = {};
-let graphic: Partial<IGraphicDocument> | undefined;
+let cart: Partial<ICart> | undefined;
 let store: IStoreDocument | undefined;
 let server: Server | undefined;
+let cartItemId = '';
 
-describe('GRAPHICS', () => {
+describe.only('CART', () => {
   before(async () => {
     server = await startServer('8888', app);
     const res = await seedDatabase();
-    graphic = res.graphic;
+    cart = res.cart;
     store = res.store;
+    if (cart?.items?.length) {
+      cartItemId = cart?.items[0]?.toString() || '';
+    }
     const tokens = await login();
     if (tokens) {
       testUser.tokens = tokens;
@@ -36,29 +40,10 @@ describe('GRAPHICS', () => {
     }
   });
 
-  describe('[GET] /graphics', () => {
+  describe('[GET] /carts/:{cartId}', () => {
     it('[401] Should fail: Unauthorized', async () => {
       const storeId = store?._id.toString();
-      const url = `${baseURL}/stores/${storeId}/all`;
-      request(app).get(url).expect(401);
-    });
-
-    it('[200] Should succeed: OK', async () => {
-      const storeId = store?._id.toString();
-      const url = `${baseURL}/stores/${storeId}/all`;
-      const token = testUser.token || '';
-      const res = await request(app).get(url).set('Authorization', token).expect(200);
-      const graphics = res.body.graphics as IGraphicDocument[];
-      graphics.forEach((graphic) => {
-        validateGraphic(graphic);
-      });
-    });
-  });
-
-  describe('[GET] /graphics/:{graphicId}', () => {
-    it('[401] Should fail: Unauthorized', async () => {
-      const storeId = store?._id.toString();
-      const url = `${baseURL}/stores/${storeId}/${graphic?._id}`;
+      const url = `${baseURL}/stores/${storeId}/${cart?._id}`;
       request(app).get(url).expect(401);
     });
 
@@ -78,15 +63,15 @@ describe('GRAPHICS', () => {
 
     it('[200] Should succeed: OK', async () => {
       const storeId = store?._id.toString();
-      const url = `${baseURL}/stores/${storeId}/${graphic?._id}`;
+      const url = `${baseURL}/stores/${storeId}/${cart?._id}`;
       const token = testUser.token || '';
       const res = await request(app).get(url).set('Authorization', token).expect(200);
-      const reportResponse = res.body.graphic as IGraphicDocument;
+      const reportResponse = res.body.cart as ICart;
       validateGraphic(reportResponse);
     });
   });
 
-  describe('[PATCH] /graphics/:{graphicId}', () => {
+  describe('[PATCH] /carts/:{cartId}', () => {
     const validBody = {
       name: 'The new name',
     };
@@ -95,37 +80,41 @@ describe('GRAPHICS', () => {
     };
 
     it('[401] Should fail: Unauthorized', async () => {
+      console.log('CASE 1 ', cartItemId);
       const storeId = store?._id.toString();
-      const url = `${baseURL}/stores/${storeId}/${graphic?._id}`;
+      const url = `${baseURL}/${cart?._id}/stores/${storeId}/cartItems/${cartItemId}`;
       request(app).patch(url).expect(401);
     });
 
     it('[400] Should fail: Bad request', async () => {
+      console.log('CASE 2 ', cartItemId);
       const storeId = store?._id.toString();
-      const url = `${baseURL}/stores/${storeId}/${graphic?._id}`;
+      const url = `${baseURL}/${cart?._id}/stores/${storeId}/cartItems/${cartItemId}`;
       const token = testUser.token || '';
       request(app).patch(url).set('Authorization', token).send(invalidBody).expect(400);
     });
 
     it('[404] Should fail: Not found', async () => {
+      console.log('CASE 3 ', cartItemId);
       const storeId = store?._id.toString();
-      const url = `${baseURL}/stores/${storeId}/${nonExistingMongoId}`;
+      const url = `${baseURL}/${nonExistingMongoId}/stores/${storeId}/cartItems/${cartItemId}`;
       const token = testUser.token || '';
       request(app).patch(url).set('Authorization', token).send(validBody).expect(404);
     });
 
     it('[200] Should succeed: OK', async () => {
+      console.log('CASE 3 ', cartItemId);
       const storeId = store?._id.toString();
-      const url = `${baseURL}/stores/${storeId}/${graphic?._id}`;
+      const url = `${baseURL}/${cart?._id}/stores/${storeId}/cartItems/${cartItemId}`;
       const token = testUser.token || '';
       request(app).patch(url).set('Authorization', token).send(validBody).expect(200);
     });
   });
 
-  describe('[DELETE] /graphics/:{graphicId}', () => {
+  describe('[DELETE] /carts/:{cartId}', () => {
     it('[401] Should fail: Unauthorized', async () => {
       const storeId = store?._id.toString();
-      const url = `${baseURL}/stores/${storeId}/${graphic?._id}`;
+      const url = `${baseURL}/stores/${storeId}/${cart?._id}`;
       request(app).delete(url).expect(401);
     });
 
@@ -145,19 +134,17 @@ describe('GRAPHICS', () => {
 
     it('[200] Should succeed: OK', async () => {
       const storeId = store?._id.toString();
-      const url = `${baseURL}/stores/${storeId}/${graphic?._id}`;
+      const url = `${baseURL}/stores/${storeId}/${cart?._id}`;
       const token = testUser.token || '';
       request(app).delete(url).set('Authorization', token).expect(200);
     });
   });
 });
 
-export const validateGraphic = (graphic: IGraphicDocument) => {
-  should(graphic).have.property('_id');
-  should(graphic).have.property('histories');
-  should(graphic).have.property('name');
-  should(graphic).have.property('description');
-  should(graphic).have.property('teamId');
-  should(graphic).have.property('storeId');
-  should(graphic).have.property('generatedBy');
+export const validateGraphic = (cart: ICart) => {
+  should(cart).have.property('_id');
+  should(cart).have.property('items');
+  should(cart).have.property('userId');
+  should(cart).have.property('storeId');
+  should(cart).have.property('totalPrices');
 };
