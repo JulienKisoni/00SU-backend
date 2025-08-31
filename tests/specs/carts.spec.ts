@@ -5,7 +5,7 @@ import { type Server } from 'http';
 import { app } from '../../src/app';
 import { startServer } from '../../src/utils/server';
 import { clearDatabase, CONSTANTS, seedDatabase } from '../helpers';
-import { IStoreDocument, ITestUser, ICart } from '../../src/types/models';
+import { IStoreDocument, ITestUser, ICart, CartItemDetails } from '../../src/types/models';
 import { login } from '../helpers/users';
 
 const { invalidMongoId, nonExistingMongoId } = CONSTANTS;
@@ -17,14 +17,15 @@ let store: IStoreDocument | undefined;
 let server: Server | undefined;
 let cartItemId = '';
 
-describe.only('CART', () => {
+describe('CART', () => {
   before(async () => {
     server = await startServer('8888', app);
     const res = await seedDatabase();
     cart = res.cart;
     store = res.store;
-    if (cart?.items?.length) {
-      cartItemId = cart?.items[0]?.toString() || '';
+    const items = (cart?.items || []) as CartItemDetails[];
+    if (items.length) {
+      cartItemId = items[0]._id.toString();
     }
     const tokens = await login();
     if (tokens) {
@@ -66,7 +67,7 @@ describe.only('CART', () => {
       const url = `${baseURL}/stores/${storeId}/${cart?._id}`;
       const token = testUser.token || '';
       const res = await request(app).get(url).set('Authorization', token).expect(200);
-      const reportResponse = res.body.cart as ICart;
+      const reportResponse = res.body as ICart;
       validateGraphic(reportResponse);
     });
   });
@@ -80,14 +81,12 @@ describe.only('CART', () => {
     };
 
     it('[401] Should fail: Unauthorized', async () => {
-      console.log('CASE 1 ', cartItemId);
       const storeId = store?._id.toString();
       const url = `${baseURL}/${cart?._id}/stores/${storeId}/cartItems/${cartItemId}`;
       request(app).patch(url).expect(401);
     });
 
     it('[400] Should fail: Bad request', async () => {
-      console.log('CASE 2 ', cartItemId);
       const storeId = store?._id.toString();
       const url = `${baseURL}/${cart?._id}/stores/${storeId}/cartItems/${cartItemId}`;
       const token = testUser.token || '';
@@ -95,7 +94,6 @@ describe.only('CART', () => {
     });
 
     it('[404] Should fail: Not found', async () => {
-      console.log('CASE 3 ', cartItemId);
       const storeId = store?._id.toString();
       const url = `${baseURL}/${nonExistingMongoId}/stores/${storeId}/cartItems/${cartItemId}`;
       const token = testUser.token || '';
@@ -103,7 +101,6 @@ describe.only('CART', () => {
     });
 
     it('[200] Should succeed: OK', async () => {
-      console.log('CASE 3 ', cartItemId);
       const storeId = store?._id.toString();
       const url = `${baseURL}/${cart?._id}/stores/${storeId}/cartItems/${cartItemId}`;
       const token = testUser.token || '';
