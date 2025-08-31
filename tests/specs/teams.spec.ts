@@ -16,9 +16,9 @@ let team: ITeamDocument | undefined;
 let server: Server | undefined;
 let teamId = '';
 
-describe.only('TEAMS', () => {
+describe('TEAMS', () => {
   before(async () => {
-    server = await startServer('8000', app);
+    server = await startServer('8888', app);
     const res = await seedDatabase();
     team = res.team;
     teamId = team?._id.toString() || '';

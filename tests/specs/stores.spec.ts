@@ -18,7 +18,7 @@ let server: Server | undefined;
 
 describe('STORES', () => {
   before(async () => {
-    server = await startServer('8000', app);
+    server = await startServer('8888', app);
     const res = await seedDatabase();
     store = res.store;
     const tokens = await login({ email: 'julien+admin@mail.com', password: 'julien+admin' });

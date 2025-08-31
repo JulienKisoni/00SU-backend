@@ -63,7 +63,7 @@ const payloads = {
 
 describe('E2E', () => {
   before(async () => {
-    server = await startServer('8000', app);
+    server = await startServer('8888', app);
     await seedDatabase();
   });
 

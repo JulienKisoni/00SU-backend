@@ -18,7 +18,7 @@ let server: Server | undefined;
 
 describe('PRODUCTS', () => {
   before(async () => {
-    server = await startServer('8000', app);
+    server = await startServer('8888', app);
     const res = await seedDatabase();
     product = res.product;
     store = res.store;
