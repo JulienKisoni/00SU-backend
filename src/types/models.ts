@@ -2,7 +2,6 @@ import { RootFilterQuery, Schema, mongo } from 'mongoose';
 import type { Request } from 'express';
 
 import { GenericError } from '../middlewares/errors';
-import { ORDER_STATUS } from './enums';
 
 export enum USER_ROLES {
   clerk = 'clerk',
@@ -35,6 +34,8 @@ export interface IUserProfile {
   username?: string;
   picture?: string;
 }
+
+export type DummyUser = Pick<IUserDocument, 'email' | 'password' | 'profile' | 'teamId'>;
 export interface IUserDocument extends Timestamps {
   _id: string | Schema.Types.ObjectId;
   email: string;
@@ -98,11 +99,15 @@ export interface ExtendedRequest<B, P extends ParamsDictionary> extends Request 
   body: B | undefined;
   user?: IUserDocument;
   isStoreOwner?: boolean;
-  isProductOwner?: boolean;
+  isTeamProduct?: boolean;
   isReviewOwner?: boolean;
-  isOrderOwner?: boolean;
+  isTeamOrder?: boolean;
+  isTeamReport?: boolean;
   isTeamOwner?: boolean;
+  isTeamGraphic?: boolean;
   order?: IOrderDocument;
+  report?: IReportDocument;
+  graphic?: IGraphicDocument;
   hasAlreadyReviewedProduct?: boolean;
   storeId?: string;
   productId?: string;
@@ -157,16 +162,65 @@ export interface CartItem {
   productId: string | Schema.Types.ObjectId;
   quantity: number;
   productDetails?: Partial<IProductDocument>;
+  totalPrice?: number;
 }
 
 export interface IOrderDocument extends Timestamps {
   __v?: number;
   _id: string | Schema.Types.ObjectId;
   items: CartItem[];
-  owner: string | Schema.Types.ObjectId;
   totalPrice: number;
+  orderedBy: string | Schema.Types.ObjectId;
+  ownerDetails?: Partial<IUserDocument>;
+  storeDetails?: Partial<IStoreDocument>;
+  teamId: string | Schema.Types.ObjectId;
+  storeId: string | Schema.Types.ObjectId;
   orderNumber: string;
-  status: ORDER_STATUS;
+}
+
+export interface IReportDocument extends Timestamps {
+  orders: (string | Schema.Types.ObjectId)[];
+  name: string;
+  description: string;
+  teamId: string | Schema.Types.ObjectId;
+  storeId: string | Schema.Types.ObjectId;
+  generatedBy: string | Schema.Types.ObjectId;
+  _id: string | Schema.Types.ObjectId;
+  __v?: number;
+  totalItems?: number;
+  allOrderItems?: CartItem[];
+  totalPrices?: number;
+  ownerDetails?: Partial<IUserDocument>;
+  storeDetails?: Partial<IStoreDocument>;
+}
+
+export interface IEvolution {
+  date: string;
+  dateKey: string; // will help group Evolution of different products by dateKey (groupBy)
+  quantity: number;
+  collectedBy: string | Schema.Types.ObjectId;
+}
+
+export interface IHistoryDocument extends Timestamps {
+  _id: string | Schema.Types.ObjectId;
+  __v?: number;
+  productId: string | Schema.Types.ObjectId;
+  productName: string;
+  evolutions: IEvolution[];
+  storeId: string | Schema.Types.ObjectId;
+  teamId: string | Schema.Types.ObjectId;
+}
+export interface IGraphicDocument extends Timestamps {
+  _id: string | Schema.Types.ObjectId;
+  __v?: number;
+  histories: (string | Schema.Types.ObjectId | IHistoryDocument)[];
+  name: string;
+  description: string;
+  storeId: string | Schema.Types.ObjectId;
+  teamId: string | Schema.Types.ObjectId;
+  generatedBy: string | Schema.Types.ObjectId;
+  ownerDetails?: Partial<IUserDocument>;
+  storeDetails?: Partial<IStoreDocument>;
 }
 
 export type RetrieveOneFilters<T> = RootFilterQuery<T>;

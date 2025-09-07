@@ -2,30 +2,12 @@ import ShortUniqueId from 'short-unique-id';
 import omit from 'lodash.omit';
 import isEmpty from 'lodash.isempty';
 
-import { CartItem, GeneralResponse, IOrderDocument, IProductDocument, RetrieveOneFilters } from '../types/models';
+import { CartItem, GeneralResponse, IOrderDocument, IProductDocument, IStoreDocument, IUserDocument } from '../types/models';
 import { createError } from '../middlewares/errors';
-import { HTTP_STATUS_CODES, ORDER_STATUS } from '../types/enums';
+import { HTTP_STATUS_CODES } from '../types/enums';
 import { ProductModel } from '../models/product';
 import { OrderModel } from '../models/order';
-import { transformProduct } from './products';
-
-const retrieveOrder = async (filters: RetrieveOneFilters<IOrderDocument>): Promise<IOrderDocument | null> => {
-  const order = (await OrderModel.findOne(filters).populate({ path: 'items.productId' }).lean().exec()) as IOrderDocument;
-  if (!order || order === null) {
-    return null;
-  }
-  const newItems = order.items.map((item) => {
-    const product = item.productId as unknown as IProductDocument;
-    const productId = product._id.toString();
-    return {
-      ...item,
-      productId,
-      productDetails: transformProduct({ product, excludedFields: ['__v'] }),
-    };
-  });
-  order.items = newItems;
-  return order;
-};
+import { transformUser } from './users';
 
 type TransformKeys = keyof IOrderDocument;
 interface ITransformOrder {
@@ -33,6 +15,22 @@ interface ITransformOrder {
   order: IOrderDocument;
 }
 const transformOrder = ({ order, excludedFields }: ITransformOrder): Partial<IOrderDocument> => {
+  if (order.orderedBy && typeof order.orderedBy === 'object') {
+    const owner = order.orderedBy as unknown as IUserDocument;
+    order.ownerDetails = transformUser({ user: owner, excludedFields: ['password', 'private'] });
+    order.orderedBy = owner._id;
+  }
+  if (order.storeId && typeof order.storeId === 'object') {
+    const store = order.storeId as unknown as IStoreDocument;
+    order.storeDetails = store;
+    order.storeId = store._id;
+  }
+  order.items = order.items.map((item) => {
+    return {
+      ...item,
+      totalPrice: item.productDetails?.unitPrice ? item.quantity * item.productDetails?.unitPrice : undefined,
+    };
+  });
   return omit(order, excludedFields);
 };
 
@@ -68,13 +66,15 @@ export const generateOrderNumber = (): string => {
   return orderNumber;
 };
 
-type ValidCreateOrderPayload = Pick<IOrderDocument, 'items' | 'owner' | 'totalPrice' | 'orderNumber' | 'status'>;
+type ValidCreateOrderPayload = Pick<IOrderDocument, 'items' | 'orderedBy' | 'totalPrice' | 'orderNumber' | 'teamId' | 'storeId'>;
 type PrepareOrderResponse = Promise<GeneralResponse<{ payload: ValidCreateOrderPayload }>>;
 interface PrepareOrderParams {
   items?: CartItem[];
-  owner?: string;
+  userId?: string;
+  storeId: string;
+  teamId: string;
 }
-const prepareOrderPayload = async ({ items, owner }: PrepareOrderParams): PrepareOrderResponse => {
+const prepareOrderPayload = async ({ items, userId, storeId, teamId }: PrepareOrderParams): PrepareOrderResponse => {
   if (!items?.length) {
     const error = createError({
       statusCode: HTTP_STATUS_CODES.BAD_REQUEST,
@@ -84,7 +84,7 @@ const prepareOrderPayload = async ({ items, owner }: PrepareOrderParams): Prepar
     return { error };
   }
 
-  if (!owner) {
+  if (!userId) {
     const error = createError({
       statusCode: HTTP_STATUS_CODES.UNAUTHORIZED,
       message: 'No user associated with the request',
@@ -94,7 +94,7 @@ const prepareOrderPayload = async ({ items, owner }: PrepareOrderParams): Prepar
   }
   const productIds: string[] = items.map((item) => item.productId.toString());
 
-  const products = await ProductModel.find({ _id: { $in: productIds } });
+  const products = await ProductModel.find({ _id: { $in: productIds }, storeId });
 
   if (productIds.length !== products?.length) {
     const error = createError({
@@ -109,25 +109,27 @@ const prepareOrderPayload = async ({ items, owner }: PrepareOrderParams): Prepar
   const orderNumber = generateOrderNumber();
 
   const payload: ValidCreateOrderPayload = {
-    owner,
+    orderedBy: userId,
     totalPrice,
     items,
     orderNumber,
-    status: ORDER_STATUS.PENDING,
+    teamId,
+    storeId,
   };
   return { data: { payload } };
 };
 type AddOrderBody = API_TYPES.Routes['body']['orders']['add'];
 interface AddOrderParams {
-  owner?: string;
+  userId?: string;
+  teamId: string;
   body: AddOrderBody;
 }
 type AddOrderResponse = Promise<GeneralResponse<{ orderId: string }>>;
 export const addOrder = async (params: AddOrderParams): AddOrderResponse => {
-  const { owner, body } = params;
+  const { userId, body, teamId } = params;
   const { items } = body;
 
-  const { error, data } = await prepareOrderPayload({ items, owner });
+  const { error, data } = await prepareOrderPayload({ items, userId, storeId: body.storeId, teamId });
   if (error) {
     return { error };
   } else if (!data) {
@@ -146,8 +148,8 @@ export const addOrder = async (params: AddOrderParams): AddOrderResponse => {
 };
 
 type GetAllOrdersResponse = Promise<GeneralResponse<{ orders: Partial<IOrderDocument>[] }>>;
-export const getAllOrders = async (): GetAllOrdersResponse => {
-  const results = await OrderModel.find({}).lean().exec();
+export const getAllOrders = async ({ teamId, storeId }: { teamId: string; storeId: string }): GetAllOrdersResponse => {
+  const results = await OrderModel.find({ teamId, storeId }).populate('orderedBy').lean().exec();
   const orders = results.map((order) => transformOrder({ order, excludedFields: ['__v'] }));
   return { data: { orders } };
 };
@@ -159,9 +161,8 @@ interface GetOneOrderPayload {
 }
 type GetOneOrderResponse = Promise<GeneralResponse<{ order: Partial<IOrderDocument> }>>;
 export const getOneOrder = async (payload: GetOneOrderPayload): GetOneOrderResponse => {
-  const { order, userId, orderId } = payload;
-  const data = await retrieveOrder({ _id: orderId });
-  if (order?._id.toString() !== orderId || order?.owner.toString() !== userId || !order || data === null) {
+  const { order, orderId } = payload;
+  if (!order) {
     const error = createError({
       statusCode: HTTP_STATUS_CODES.NOT_FOUND,
       message: `No order found (${orderId})`,
@@ -169,7 +170,7 @@ export const getOneOrder = async (payload: GetOneOrderPayload): GetOneOrderRespo
     });
     return { error };
   }
-  const newOrder = transformOrder({ order: data, excludedFields: ['__v'] });
+  const newOrder = transformOrder({ order, excludedFields: ['__v'] });
   return { data: { order: newOrder } };
 };
 
@@ -208,10 +209,12 @@ interface UpdateOneOrderPayload {
   body: UpdateOneOrderBody | undefined;
   orderId: string;
   userId?: string;
+  teamId: string;
+  storeId: string;
   order?: IOrderDocument;
 }
 export const updateOne = async (payload: UpdateOneOrderPayload): UpdateOneOrderResponse => {
-  const { body, orderId, userId, order } = payload;
+  const { body, orderId, userId, order, teamId, storeId } = payload;
 
   if (!body || isEmpty(body)) {
     const error = createError({
@@ -221,7 +224,7 @@ export const updateOne = async (payload: UpdateOneOrderPayload): UpdateOneOrderR
     });
     return { error };
   }
-  const { items, status } = body;
+  const { items } = body;
 
   if (items && !items?.length) {
     const error = createError({
@@ -234,15 +237,12 @@ export const updateOne = async (payload: UpdateOneOrderPayload): UpdateOneOrderR
 
   const _items = items || order?.items;
 
-  const { data, error } = await prepareOrderPayload({ items: _items, owner: userId });
+  const { data, error } = await prepareOrderPayload({ items: _items, userId, storeId, teamId });
   if (error) {
     return { error };
   }
   const value = data?.payload;
-  if (status && value) {
-    value.status = status;
-  }
-  const newOrder = await OrderModel.findByIdAndUpdate(orderId, value).lean().exec();
+  const newOrder = await OrderModel.findByIdAndUpdate(orderId, value, { new: true }).lean().exec();
   if (!newOrder?._id) {
     const error = createError({
       statusCode: HTTP_STATUS_CODES.NOT_FOUND,

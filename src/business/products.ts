@@ -26,7 +26,7 @@ export const transformProduct = ({ product, excludedFields }: ITransformProduct)
 };
 
 type AddProductPayload = API_TYPES.Routes['business']['products']['add'];
-type AddProductReturn = Promise<GeneralResponse<{ productId: string }>>;
+type AddProductReturn = Promise<GeneralResponse<IProductDocument>>;
 export const addProduct = async ({ owner, storeId, body, teamId }: AddProductPayload): AddProductReturn => {
   if (!body || isEmpty(body)) {
     const error = createError({
@@ -49,12 +49,16 @@ export const addProduct = async ({ owner, storeId, body, teamId }: AddProductPay
   await StoreModel.findByIdAndUpdate(storeId, {
     $push: { products: productId },
   });
-  return { data: { productId } };
+  return { data: product };
 };
 
+interface GetProductsParams {
+  storeId: string;
+  teamId: string;
+}
 type GetAllProductsReturn = Promise<{ products: Partial<IProductDocument>[] }>;
-export const getAllProducts = async (): GetAllProductsReturn => {
-  const response = await ProductModel.find<IProductDocument>({ active: true }).lean().exec();
+export const getAllProducts = async ({ storeId, teamId }: GetProductsParams): GetAllProductsReturn => {
+  const response = await ProductModel.find<IProductDocument>({ storeId, active: true, teamId }).lean().exec();
   const products = response?.map((product) => transformProduct({ product, excludedFields: ['__v'] }));
   return { products: products || [] };
 };
@@ -105,7 +109,7 @@ interface UpdateProductPayload {
   teamId: string;
   body: Partial<UpdateProductBody>;
 }
-type UpdateProductResponse = Promise<GeneralResponse<undefined>>;
+type UpdateProductResponse = Promise<GeneralResponse<IProductDocument>>;
 export const updateOne = async ({ body, productId, teamId }: Partial<UpdateProductPayload>): UpdateProductResponse => {
   if (!body || isEmpty(body)) {
     const error = createError({
@@ -115,7 +119,7 @@ export const updateOne = async ({ body, productId, teamId }: Partial<UpdateProdu
     });
     return { error };
   }
-  const product = await ProductModel.findOneAndUpdate({ _id: productId, teamId }, body).exec();
+  const product = await ProductModel.findOneAndUpdate({ _id: productId, teamId }, body, { new: true }).exec();
   if (!product?._id) {
     const error = createError({
       statusCode: HTTP_STATUS_CODES.NOT_FOUND,
@@ -124,5 +128,5 @@ export const updateOne = async ({ body, productId, teamId }: Partial<UpdateProdu
     });
     return { error };
   }
-  return { data: undefined };
+  return { data: product, error: undefined };
 };

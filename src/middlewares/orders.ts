@@ -3,12 +3,12 @@ import Joi, { LanguageMessages } from 'joi';
 
 import { regex } from '../helpers/constants';
 import { HTTP_STATUS_CODES } from '../types/enums';
-import { ExtendedRequest, ParamsDictionary } from '../types/models';
+import { ExtendedRequest, IUserDocument, ParamsDictionary } from '../types/models';
 import { handleError, createError } from './errors';
 import { OrderModel } from '../models/order';
 
 type GetOneOrderParams = API_TYPES.Routes['params']['orders']['getOne'];
-export const isOrderOwner = async (req: ExtendedRequest<undefined, ParamsDictionary>, _res: Response, next: NextFunction) => {
+export const isTeamOrder = async (req: ExtendedRequest<undefined, ParamsDictionary>, _res: Response, next: NextFunction) => {
   const params = req.params as unknown as GetOneOrderParams;
   const orderIdMessages: LanguageMessages = {
     'any.required': 'Please provide a orderId',
@@ -24,16 +24,18 @@ export const isOrderOwner = async (req: ExtendedRequest<undefined, ParamsDiction
     return handleError({ error, next, currentSession: session });
   }
   const { orderId } = value;
-  const userId = req.user?._id.toString();
-  if (!orderId || !userId) {
+  const { _id, teamId } = req.user || ({} as IUserDocument);
+  const storeId = req.storeId?.toString();
+  const userId = _id.toString();
+  if (!orderId || !userId || !teamId || !storeId) {
     const error = createError({
       statusCode: HTTP_STATUS_CODES.BAD_REQUEST,
-      message: `Either no user, userId or orderId`,
-      publicMessage: 'Ressource not found',
+      message: `Either no user, userId, storeId or orderId`,
+      publicMessage: 'Resource not found',
     });
     return next(error);
   }
-  const order = await OrderModel.findOne({ _id: orderId, owner: userId }).lean().exec();
+  const order = await OrderModel.findOne({ _id: orderId, teamId, storeId }).populate(['orderedBy', 'storeId']).lean().exec();
   if (!order?._id) {
     const error = createError({
       statusCode: HTTP_STATUS_CODES.FORBIDDEN,
@@ -42,7 +44,7 @@ export const isOrderOwner = async (req: ExtendedRequest<undefined, ParamsDiction
     });
     return handleError({ error, next, currentSession: session });
   }
-  req.isOrderOwner = true;
+  req.isTeamOrder = true;
   req.order = order;
   next();
 };

@@ -14,6 +14,7 @@ namespace API_TYPES {
   export interface TokenResponse {
     error?: GenericError;
     tokens?: Tokens;
+    userId?: string;
   }
 
   interface CartItem {
@@ -94,10 +95,45 @@ namespace API_TYPES {
     orders: {
       add: {
         items: CartItem[];
+        storeId: string;
       };
       updateOne: {
         items?: CartItem[];
-        status?: ORDER_STATUS;
+      };
+    };
+    reports: {
+      add: {
+        name: string;
+        description: string;
+        storeId: string;
+        orders: string[];
+      };
+      updateOne: {
+        name?: string;
+        description?: string;
+      };
+    };
+    histories: {
+      add: {
+        quantity: number;
+      };
+      updateOne: {
+        evolution: {
+          date: string;
+          dateKey: string;
+          quantity: number;
+        };
+      };
+    };
+    graphics: {
+      add: {
+        productsIDs: string[];
+        name: string;
+        description: string;
+      };
+      updateOne: {
+        name?: string;
+        description?: string;
       };
     };
   }
@@ -222,9 +258,28 @@ namespace API_TYPES {
         orderId: string;
       };
     };
+    reports: {
+      getOne: {
+        reportId: string;
+      };
+      deleteOne: {
+        reportId: string;
+      };
+    };
     users: {
       getByTeam: {
         email?: string;
+      };
+    };
+    graphics: {
+      getOne: {
+        graphicId: string;
+      };
+      deleteOne: {
+        graphicId: string;
+      };
+      updateOne: {
+        graphicId: string;
       };
     };
   }

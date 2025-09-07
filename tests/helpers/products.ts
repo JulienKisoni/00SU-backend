@@ -12,7 +12,11 @@ export const injectProducts = async (store: IStoreMethods) => {
 
 export const createStoreProducts = async (store: IStoreMethods) => {
   const promises = DummyProducts.map((product) => {
-    return createStore({ doc: product, store });
+    const doc = {
+      ...product,
+      teamId: store.teamId,
+    };
+    return createProduct({ doc, store });
   });
   const products = await Promise.all(promises);
   return products;
@@ -23,11 +27,11 @@ interface ICreateStore {
   store: IStoreMethods;
 }
 
-export const createStore = async ({ doc, store }: ICreateStore) => {
+export const createProduct = async ({ doc, store }: ICreateStore) => {
   if (store.updateSelf) {
     doc.owner = store.owner;
     doc.storeId = store._id;
-    const product = await ProductModel.create(doc);
+    const product = (await ProductModel.create(doc)).toObject();
     await store.updateSelf({ $push: { products: product._id } });
     return product;
   } else {

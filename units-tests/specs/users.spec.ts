@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, test } from '@jest/globals';
 
 import { addUser, invalidateToken } from '../../src/business/users';
@@ -27,15 +28,17 @@ describe('User business logics', () => {
     });
     (mockedCreate as jest.MockInstance<any, any>).mockResolvedValueOnce({ _id: FAKE_ID });
     const payload = {
-      username: 'Julien',
       email: 'julien@mail.com',
       password: 'julien',
-      role: USER_ROLES.user,
+      profile: {
+        username: 'Julien',
+        role: USER_ROLES.admin,
+      },
     };
-    const { username, email, role } = payload;
+    const { profile, email } = payload;
     const res = await addUser(payload);
     expect(res.userId).toEqual(FAKE_ID);
-    expect(mockedCreate).toHaveBeenCalledWith({ email, username, password: encryptedText, profile: { role } });
+    expect(mockedCreate).toHaveBeenCalledWith({ email, profile, password: encryptedText });
   });
   test('Should [FAIL] add existing user ', async () => {
     const mockedFindOne = jest.spyOn(UserModel, 'findOne');
@@ -44,10 +47,12 @@ describe('User business logics', () => {
       exec: () => Promise.resolve({ _id: FAKE_ID }),
     }));
     const payload = {
-      username: 'Julien',
       email: 'julien@mail.com',
       password: 'julien',
-      role: USER_ROLES.user,
+      profile: {
+        username: 'Julien',
+        role: USER_ROLES.admin,
+      },
     };
     const { error } = await addUser(payload);
     expect(error?.publicMessage).toEqual('User with this email already exist');

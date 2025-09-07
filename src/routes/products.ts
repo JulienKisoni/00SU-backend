@@ -8,23 +8,35 @@ import * as permissionMiddlewares from '../middlewares/permissions';
 const productsRouter = Router();
 
 /* [GET] */
-productsRouter.get('/', permissionMiddlewares.hasPermission({ Model: 'products', Action: 'read' }), productCtrl.getAllProducts);
-productsRouter.get('/:productId', permissionMiddlewares.hasPermission({ Model: 'products', Action: 'read' }), productCtrl.getOne);
+productsRouter.get(
+  '/stores/:storeId/all',
+  permissionMiddlewares.hasPermission({ Model: 'products', Action: 'read' }),
+  storeMiddlewares.getStore,
+  productCtrl.getAllProducts,
+);
+productsRouter.get(
+  '/stores/:storeId/:productId',
+  permissionMiddlewares.hasPermission({ Model: 'products', Action: 'read' }),
+  storeMiddlewares.getStore,
+  productMiddlewares.isTeamProduct,
+  productCtrl.getOne,
+);
 
 /* [DELETE] */
 productsRouter.delete(
-  '/:productId',
+  '/stores/:storeId/:productId',
   permissionMiddlewares.hasPermission({ Model: 'products', Action: 'delete' }),
   storeMiddlewares.getStore,
-  productMiddlewares.isProductOwner,
+  productMiddlewares.isTeamProduct,
   productCtrl.deleteOne,
 );
 
 /* [PATCH] */
 productsRouter.patch(
-  '/:productId',
+  '/stores/:storeId/:productId',
   permissionMiddlewares.hasPermission({ Model: 'products', Action: 'update' }),
   storeMiddlewares.getStore,
+  productMiddlewares.getProduct,
   productCtrl.updateOne,
 );
 

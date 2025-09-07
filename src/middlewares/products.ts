@@ -2,19 +2,19 @@ import { NextFunction, Response } from 'express';
 import Joi, { LanguageMessages } from 'joi';
 
 import { HTTP_STATUS_CODES } from '../types/enums';
-import { ExtendedRequest, IProductDocument, ParamsDictionary } from '../types/models';
+import { ExtendedRequest, ParamsDictionary } from '../types/models';
 import { createError, handleError } from './errors';
 import { regex } from '../helpers/constants';
 import { ProductModel } from '../models/product';
-import { RootFilterQuery } from 'mongoose';
 
 type DeleteProductParams = API_TYPES.Routes['params']['products']['deleteOne'];
 interface DeleteProductSchema {
   params: DeleteProductParams;
 }
-export const isProductOwner = async (req: ExtendedRequest<undefined, ParamsDictionary>, _res: Response, next: NextFunction) => {
+export const isTeamProduct = async (req: ExtendedRequest<undefined, ParamsDictionary>, _res: Response, next: NextFunction) => {
   const params = req.params as unknown as DeleteProductParams;
-  const userId = req.user?._id;
+  const userId = req.user?._id.toString();
+  const teamId = req.user?.teamId.toString();
   const storeIdMessages: LanguageMessages = {
     'string.pattern.base': 'Please provide a valid storeId',
   };
@@ -41,15 +41,15 @@ export const isProductOwner = async (req: ExtendedRequest<undefined, ParamsDicti
     return handleError({ error, next, currentSession: session });
   }
   const { storeId, productId } = value.params;
-  if (!storeId || !userId || !productId) {
+  if (!storeId || !userId || !productId || !teamId) {
     const error = createError({
       statusCode: HTTP_STATUS_CODES.BAD_REQUEST,
-      message: `Either no user, storeId or productId`,
+      message: `Either no user, storeId, teamId or productId`,
       publicMessage: 'Ressource not found',
     });
     return handleError({ error, next, currentSession: session });
   }
-  const product = await ProductModel.findOne({ _id: productId, storeId, owner: userId }).exec();
+  const product = await ProductModel.findOne({ _id: productId, storeId, teamId }).exec();
   if (!product?._id) {
     const error = createError({
       statusCode: HTTP_STATUS_CODES.FORBIDDEN,
@@ -58,7 +58,7 @@ export const isProductOwner = async (req: ExtendedRequest<undefined, ParamsDicti
     });
     return handleError({ error, next, currentSession: session });
   }
-  req.isProductOwner = true;
+  req.isTeamProduct = true;
   req.productId = productId;
   req.storeId = storeId;
   next();
@@ -110,51 +110,49 @@ export const isNotProductOwner = async (req: ExtendedRequest<AddReviewBody, Para
       publicMessage: "You're not allowed to review your own product",
     });
 
-    req.isProductOwner = true;
+    req.isTeamProduct = true;
     return handleError({ error, next, currentSession: session });
   }
-  req.isProductOwner = false;
+  req.isTeamProduct = false;
   return next();
 };
 
-interface IGetProdMiddleware {
-  reviewId?: string;
-  productId?: string;
+interface IGetProdMiddleware extends ParamsDictionary {
+  storeId: string;
+  productId: string;
 }
-export const getProduct = async (req: ExtendedRequest<undefined, ParamsDictionary>, _res: Response, next: NextFunction) => {
-  const params = req.params as unknown as IGetProdMiddleware;
+export const getProduct = async (req: ExtendedRequest<undefined, IGetProdMiddleware>, _res: Response, next: NextFunction) => {
+  const teamId = req.user?.teamId.toString();
 
-  const reviewIdMessages: LanguageMessages = {
-    'string.pattern.base': 'Please provide a valid review id',
-  };
+  const session = req.currentSession;
+  if (!teamId) {
+    const error = createError({
+      statusCode: HTTP_STATUS_CODES.NOT_FOUND,
+      message: `Could not find team associated request`,
+      publicMessage: 'Could not find any team associated with your request',
+    });
+    req.productId = undefined;
+    return handleError({ error, next, currentSession: session });
+  }
+
   const productIdMessages: LanguageMessages = {
+    'string.pattern.base': 'Please provide a valid product id',
+  };
+  const storeIdMessages: LanguageMessages = {
     'string.pattern.base': 'Please provide a valid product id',
   };
 
   const schema = Joi.object<IGetProdMiddleware>({
-    reviewId: Joi.string().regex(regex.mongoId).messages(reviewIdMessages),
-    productId: Joi.string().regex(regex.mongoId).messages(productIdMessages),
+    productId: Joi.string().required().regex(regex.mongoId).messages(productIdMessages),
+    storeId: Joi.string().required().regex(regex.mongoId).messages(storeIdMessages),
   });
 
-  const session = req.currentSession;
-
-  const { error, value } = schema.validate(params);
+  const { error, value } = schema.validate(req.params);
   if (error) {
     return handleError({ error, next, currentSession: session });
   }
 
-  const { productId, reviewId } = value;
-  let query: RootFilterQuery<IProductDocument>;
-  if (reviewId || !productId) {
-    query = {
-      reviews: value.reviewId,
-    };
-  } else {
-    query = {
-      _id: productId,
-    };
-  }
-  const product = await ProductModel.findOne(query).exec();
+  const product = await ProductModel.findOne({ _id: value.productId, storeId: value.storeId, teamId }).exec();
 
   if (!product?._id) {
     const error = createError({
@@ -167,5 +165,6 @@ export const getProduct = async (req: ExtendedRequest<undefined, ParamsDictionar
   }
 
   req.productId = product._id.toString();
+  req.product = product;
   return next();
 };
